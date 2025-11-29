@@ -1,0 +1,134 @@
+#!/bin/bash
+
+# Ruanm Screensaver Command Line Interface
+# 用法: RuanmScreensaver [options]
+
+# 获取脚本所在目录
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# 获取应用程序根目录（bin目录的上级目录）
+APP_ROOT="$(dirname "$SCRIPT_DIR")"
+
+# 解析命令行参数
+case "$1" in
+    help|-h|/?)
+        show_help
+        ;;
+    version|-v)
+        show_version
+        ;;
+    gui)
+        run_gui
+        ;;
+    test)
+        test_screensaver
+        ;;
+    lock-screen|screensaver)
+        lock_screen
+        ;;
+    settings)
+        open_settings
+        ;;
+    api-test)
+        api_test
+        ;;
+    help-page)
+        help_page
+        ;;
+    changesettings)
+        change_settings
+        ;;
+    *)
+        # 默认运行GUI
+        run_gui
+        ;;
+esac
+
+run_gui() {
+    # 启动图形界面
+    cd "$APP_ROOT" 2>/dev/null
+    npx electron . 2>/dev/null || {
+        echo "无法启动图形界面，请确保已安装Electron并正确配置环境。"
+        echo "尝试使用 npm start 命令启动应用。"
+    }
+}
+
+test_screensaver() {
+    # 测试屏保
+    cd "$APP_ROOT" 2>/dev/null
+    npx electron . test 2>/dev/null || {
+        echo "无法启动屏保测试，请确保已安装Electron并正确配置环境。"
+    }
+}
+
+lock_screen() {
+    # 启动屏保
+    cd "$APP_ROOT" 2>/dev/null
+    npx electron . screensaver 2>/dev/null || {
+        echo "无法启动屏保，请确保已安装Electron并正确配置环境。"
+    }
+}
+
+open_settings() {
+    # 打开设置界面
+    cd "$APP_ROOT" 2>/dev/null
+    npx electron . 2>/dev/null || {
+        echo "无法打开设置界面，请确保已安装Electron并正确配置环境。"
+    }
+}
+
+api_test() {
+    # 打开API测试界面
+    cd "$APP_ROOT" 2>/dev/null
+    npx electron . api-test 2>/dev/null || {
+        echo "无法打开API测试界面，请确保已安装Electron并正确配置环境。"
+    }
+}
+
+help_page() {
+    # 打开帮助页面
+    cd "$APP_ROOT" 2>/dev/null
+    npx electron . help 2>/dev/null || {
+        echo "无法打开帮助页面，请确保已安装Electron并正确配置环境。"
+    }
+}
+
+change_settings() {
+    # 更改设置
+    shift
+    setting_value="$1=$2"
+    # 切换到应用程序根目录
+    cd "$APP_ROOT" 2>/dev/null
+    node -e "const fs=require('fs');const path=require('path');const settingsPath=path.join(process.cwd(), 'settings.json');let settings={enableLockScreen:false,lockTime:5,lockTimeUnit:'minute',wallpaperChangeTime:10,wallpaperChangeTimeUnit:'minute',wallpaperKeyword:'random',timeFontSize:80,dateFontSize:30,timePosition:'bottom-left',datePosition:'bottom-left',timeColor:'#FFFFFF',timeFontFamily:'Arial',dateFontFamily:'Arial',showAdvertisement:false,enableLogging:true,theme:'light'};if(fs.existsSync(settingsPath)){const existing=fs.readFileSync(settingsPath,'utf8');if(existing.trim()){settings=Object.assign(settings,JSON.parse(existing));}}const setting=process.argv[1].split('=');if(setting.length===2){const key=setting[0].trim();const value=setting[1].trim();if(value==='true'||value==='false'){settings[key]=value==='true';}else if(!isNaN(value)&&value!==''){settings[key]=Number(value);}else{settings[key]=value;}fs.writeFileSync(settingsPath,JSON.stringify(settings,null,2));console.log('设置已更新: '+key+' = '+settings[key]);}else{console.log('用法: RuanmScreensaver changesettings key=value');}" "$setting_value" 2>/dev/null || {
+        echo "设置更新失败，请确保应用程序已正确安装。"
+    }
+}
+
+show_version() {
+    echo "Ruanm Screensaver 版本 1.0.0"
+}
+
+show_help() {
+    echo "Ruanm Screensaver 命令行工具"
+    echo
+    echo "用法: RuanmScreensaver [选项]"
+    echo
+    echo "选项:"
+    echo "  help, -h, /?      显示此帮助信息"
+    echo "  version, -v       显示版本信息"
+    echo "  gui               启动图形界面设置 (默认)"
+    echo "  test              测试屏保功能"
+    echo "  lock-screen       启动屏保"
+    echo "  screensaver       启动屏保 (同 lock-screen)"
+    echo "  settings          打开设置界面"
+    echo "  api-test          打开API测试界面"
+    echo "  help-page         打开帮助页面"
+    echo "  changesettings     更改设置 (语法: RuanmScreensaver changesettings key=value)"
+    echo
+    echo "示例:"
+    echo "  RuanmScreensaver              启动图形界面设置"
+    echo "  RuanmScreensaver test         测试屏保功能"
+    echo "  RuanmScreensaver lock-screen  启动屏保"
+    echo "  RuanmScreensaver version      显示版本信息"
+    echo "  RuanmScreensaver changesettings lockTime=10  设置锁屏时间为10分钟"
+    echo "  RuanmScreensaver changesettings enableLockScreen=true  启用锁屏功能"
+}

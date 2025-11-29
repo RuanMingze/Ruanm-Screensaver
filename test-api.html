@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>API测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            flex: 1;
+            min-width: 120px;
+        }
+        .btn:hover {
+            background-color: #45a049;
+        }
+        .btn-4k { background-color: #FF5722; }
+        .btn-4k:hover { background-color: #E64A19; }
+        .btn-landscape { background-color: #4CAF50; }
+        .btn-landscape:hover { background-color: #388E3C; }
+        .btn-belle { background-color: #9C27B0; }
+        .btn-belle:hover { background-color: #7B1FA2; }
+        .btn-cartoon { background-color: #FF9800; }
+        .btn-cartoon:hover { background-color: #F57C00; }
+        .result-container {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        .image-preview {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .image-preview img {
+            max-width: 100%;
+            max-height: 500px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        .loading {
+            color: #666;
+            font-style: italic;
+        }
+        .error {
+            color: #f44336;
+        }
+        .success {
+            color: #4CAF50;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>壁纸API测试</h1>
+        <div class="button-group">
+            <button id="test4k" class="btn btn-4k">测试4K壁纸</button>
+            <button id="testLandscape" class="btn btn-landscape">测试风景壁纸</button>
+            <button id="testBelle" class="btn btn-belle">测试妹子壁纸</button>
+            <button id="testCartoon" class="btn btn-cartoon">测试动漫壁纸</button>
+        </div>
+        <div class="result-container">
+            <h3>API响应:</h3>
+            <div id="result">点击上面的按钮测试API</div>
+        </div>
+        <div class="image-preview">
+            <h3>图片预览:</h3>
+            <img id="imagePreview" src="" alt="壁纸预览">
+        </div>
+    </div>
+
+    <script>
+        async function testAPI(category) {
+            try {
+                const url = `https://api.mmp.cc/api/pcwallpaper?category=${category}&type=json`;
+                document.getElementById('result').innerHTML = '<p class="loading">请求中...</p>';
+                document.getElementById('imagePreview').src = '';
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                document.getElementById('result').innerHTML = '<pre class="success">' + JSON.stringify(data, null, 2) + '</pre>';
+                
+                // 显示图片预览
+                if (data.url) {
+                    document.getElementById('imagePreview').src = data.url;
+                }
+            } catch (error) {
+                document.getElementById('result').innerHTML = '<p class="error">错误: ' + error.message + '</p>';
+            }
+        }
+
+        document.getElementById('test4k').addEventListener('click', () => testAPI('4k'));
+        document.getElementById('testLandscape').addEventListener('click', () => testAPI('landscape'));
+        document.getElementById('testBelle').addEventListener('click', () => testAPI('belle'));
+        document.getElementById('testCartoon').addEventListener('click', () => testAPI('cartoon'));
+    </script>
+</body>
+</html>

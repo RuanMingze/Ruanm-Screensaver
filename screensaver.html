@@ -1,0 +1,1502 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>屏保界面</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            position: relative;
+            background-color: #000;
+            -webkit-user-select: none; /* 禁止选择文本 */
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            cursor: default; /* 使用默认光标 */
+        }
+        
+        #wallpaper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 1;
+            transition: opacity 1s ease-in-out;
+            pointer-events: none; /* 防止图片被选中 */
+        }
+        
+        .time-display {
+            position: fixed;
+            color: white;
+            font-weight: 300;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            z-index: 2;
+            pointer-events: none; /* 防止时间被选中 */
+        }
+        
+        .date-display {
+            position: fixed;
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 300;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            z-index: 2;
+            pointer-events: none; /* 防止日期被选中 */
+        }
+        
+        .control-buttons {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 3;
+        }
+        
+        .control-button {
+            width: 50px;
+            height: 50px;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            pointer-events: auto; /* 允许按钮被点击 */
+        }
+        
+        .control-button:hover {
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .control-button svg {
+            width: 24px;
+            height: 24px;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        /* 添加更多的切换动画效果 */
+        .fade-in {
+            animation: fadeIn 1s ease-in-out;
+        }
+        
+        .slide-in {
+            animation: slideIn 1s ease-in-out;
+        }
+        
+        .zoom-in {
+            animation: zoomIn 1s ease-in-out;
+        }
+        
+        .flip-in {
+            animation: flipIn 1s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes zoomIn {
+            from { transform: scale(1.2); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        
+        @keyframes flipIn {
+            from { transform: rotateY(90deg); opacity: 0; }
+            to { transform: rotateY(0); opacity: 1; }
+        }
+        
+        /* 自定义提示框样式 */
+        .notification {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 1); /* 不透明黑色背景 */
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            z-index: 10003; /* 确保通知在最上层，高于密码对话框 */
+            min-width: 300px;
+            max-width: 80%;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); /* 添加阴影效果 */
+        }
+
+        .dark-theme .notification {
+            background-color: rgba(30, 30, 30, 1); /* 深色主题下也不透明 */
+        }
+
+        .notification.hidden {
+            display: none;
+        }
+
+        .notification-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+        .notification-button:hover {
+            background-color: #0056b3;
+        }
+
+        .dark-theme .notification-button {
+            background-color: #0056b3;
+        }
+
+        .dark-theme .notification-button:hover {
+            background-color: #004085;
+        }
+
+        /* 密码对话框样式 */
+        #passwordDialog {
+            z-index: 10002; /* 确保密码对话框在通知之下 */
+        }
+
+        /* 广告样式 */
+        .advertisement {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 10px;
+            padding: 15px;
+            z-index: 3;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            max-width: 250px;
+            text-align: center;
+        }
+        
+        .advertisement.hidden {
+            display: none;
+        }
+        
+        .ad-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .ad-title {
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+        }
+        
+        .ad-close-button {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 20px;
+            cursor: pointer;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background-color 0.3s;
+        }
+        
+        .ad-close-button:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+        
+        .ad-image {
+            max-width: 100%;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        
+        .ad-text {
+            color: white;
+            font-size: 14px;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin-bottom: 15px;
+        }
+        
+        .ad-download-button {
+            background-color: #4A90E2;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background-color 0.3s;
+            width: 100%;
+        }
+        
+        .ad-download-button:hover {
+            background-color: #357AE8;
+        }
+        
+        /* 天气显示样式 */
+        .weather-display {
+            position: fixed;
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 10px;
+            padding: 15px;
+            z-index: 3;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            max-width: 250px;
+            color: white;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            /* 添加这些属性来防止拉伸 */
+            min-width: 200px;
+            box-sizing: border-box;
+        }
+        
+        .weather-display.hidden {
+            display: none;
+        }
+        
+        .weather-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .weather-title {
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        .weather-close-button {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 20px;
+            cursor: pointer;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background-color 0.3s;
+        }
+        
+        .weather-close-button:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+        
+        .weather-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .weather-icon {
+            width: 50px;
+            height: 50px;
+        }
+        
+        .weather-info {
+            flex: 1;
+        }
+        
+        .weather-temp {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .weather-desc {
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        
+        .weather-location {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+        
+        /* 添加天气预报详情样式 */
+        .weather-details {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .weather-detail-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+        
+        .weather-detail-label {
+            opacity: 0.8;
+        }
+        
+        .weather-detail-value {
+            font-weight: 500;
+        }
+        
+        /* 天气预报列表样式 */
+        .forecast-list {
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .forecast-title {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        
+        .forecast-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            padding: 5px 0;
+        }
+        
+        .forecast-date {
+            min-width: 60px;
+        }
+        
+        .forecast-icon {
+            width: 24px;
+            height: 24px;
+            margin: 0 5px;
+        }
+        
+        .forecast-temp {
+            min-width: 60px;
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+    <img id="wallpaper" src="" alt="锁屏壁纸">
+    
+    <div class="control-buttons" id="controlButtons">
+        <div class="control-button" id="downloadButton" title="下载壁纸">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+                <path fill="white" d="M14,2L20,8V20A2,2 0 0,1 18,22H6A2,2 0 0,1 4,20V4A2,2 0 0,1 6,2H14M18,20V9H13V4H6V20H18M12,12L16,16H13V20H11V16H8L12,12Z"/>
+            </svg>
+        </div>
+        <div class="control-button" id="changeWallpaperButton" title="换一换">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+                <path fill="white" d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8Z"/>
+            </svg>
+        </div>
+        <div class="control-button" id="exitButton" title="退出锁屏">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+                <path fill="white" d="M12,2C17.53,2 22,6.47 22,12C22,17.53 17.53,22 12,22C6.47,22 2,17.53 2,12C2,6.47 6.47,2 12,2M15.59,7L12,10.59L8.41,7L7,8.41L10.59,12L7,15.59L8.41,17L12,13.41L15.59,17L17,15.59L13.41,12L17,8.41L15.59,7Z"/>
+            </svg>
+        </div>
+    </div>
+    
+    <div class="time-display" id="timeDisplay">00:00</div>
+    <div class="date-display" id="dateDisplay">2025年1月1日 星期三</div>
+    
+    <!-- 天气显示容器 -->
+    <div class="weather-display hidden" id="weatherDisplay">
+        <div class="weather-header">
+            <span class="weather-title">天气信息</span>
+            <button class="weather-close-button" id="weatherCloseButton">×</button>
+        </div>
+        <div class="weather-content">
+            <img src="" alt="天气图标" class="weather-icon" id="weatherIcon">
+            <div class="weather-info">
+                <div class="weather-temp" id="weatherTemp">--°C</div>
+                <div class="weather-desc" id="weatherDesc">获取中...</div>
+                <div class="weather-location" id="weatherLocation">--</div>
+            </div>
+        </div>
+        <!-- 添加天气详情 -->
+        <div class="weather-details" id="weatherDetails">
+            <div class="weather-detail-row">
+                <span class="weather-detail-label">最高温度:</span>
+                <span class="weather-detail-value" id="weatherTempMax">--°C</span>
+            </div>
+            <div class="weather-detail-row">
+                <span class="weather-detail-label">最低温度:</span>
+                <span class="weather-detail-value" id="weatherTempMin">--°C</span>
+            </div>
+            <div class="weather-detail-row">
+                <span class="weather-detail-label">体感温度:</span>
+                <span class="weather-detail-value" id="weatherFeelsLike">--°C</span>
+            </div>
+            <div class="weather-detail-row">
+                <span class="weather-detail-label">湿度:</span>
+                <span class="weather-detail-value" id="weatherHumidity">--%</span>
+            </div>
+            <div class="weather-detail-row">
+                <span class="weather-detail-label">气压:</span>
+                <span class="weather-detail-value" id="weatherPressure">-- hPa</span>
+            </div>
+        </div>
+        <!-- 添加天气预报 -->
+        <div class="forecast-list hidden" id="forecastList">
+            <div class="forecast-title">未来天气预报</div>
+            <div id="forecastItems"></div>
+        </div>
+    </div>
+    
+    <!-- 广告容器 -->
+    <div class="advertisement hidden" id="advertisement">
+        <div class="ad-header">
+            <span class="ad-title">阮铭泽工具箱</span>
+            <button class="ad-close-button" id="adCloseButton">×</button>
+        </div>
+        <img src="./Assets/AdsPhoto/toolbox.png" alt="阮铭泽工具箱" class="ad-image">
+        <div class="ad-text">阮铭泽工具箱 - 您的智能电脑助手</div>
+        <button class="ad-download-button" id="adDownloadButton">立即下载</button>
+    </div>
+    
+    <!-- 自定义提示框 -->
+    <div class="notification hidden" id="notification">
+        <div id="notificationMessage"></div>
+        <button class="notification-button" id="notificationClose">确定</button>
+    </div>
+
+    <!-- 添加密码验证对话框 -->
+    <div class="notification hidden" id="passwordDialog">
+        <div id="passwordDialogTitle" style="font-size: 18px; font-weight: bold; margin-bottom: 15px;">请输入密码</div>
+        <div id="passwordInputContainer">
+            <input type="password" id="passwordInput" placeholder="请输入密码" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 5px; border: 1px solid #ccc;">
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <button class="notification-button" id="passwordConfirm" style="flex: 1;">确定</button>
+            <button class="notification-button" id="passwordCancel" style="flex: 1; background-color: #ccc;">取消</button>
+        </div>
+    </div>
+
+    <script>
+        const { ipcRenderer } = require('electron');
+        
+        // 控制元素是否隐藏
+        let elementsHidden = false;
+        
+        // 可用的动画效果
+        const animations = ['fade-in', 'slide-in', 'zoom-in', 'flip-in'];
+        let currentAnimationIndex = 0;
+        
+        // 添加当前壁纸URL变量
+        let currentWallpaperUrl = '';
+
+        // 更新时间显示
+        function updateTime() {
+            const now = new Date();
+            
+            // 时间格式化
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('timeDisplay').textContent = `${hours}:${minutes}`;
+            
+            // 日期格式化
+            const year = now.getFullYear();
+            const month = now.getMonth() + 1;
+            const date = now.getDate();
+            const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+            const weekday = weekdays[now.getDay()];
+            
+            document.getElementById('dateDisplay').textContent = `${year}年${month}月${date}日 ${weekday}`;
+        }
+        
+        // 初始化时间显示
+        updateTime();
+        setInterval(updateTime, 60000); // 每分钟更新一次时间
+        
+        // 页面加载时获取壁纸和设置
+        window.addEventListener('DOMContentLoaded', async () => {
+            // 设置默认壁纸
+            const defaultWallpaper = './Assets/Default wallpaper/Default wallpaper.png';
+            document.getElementById('wallpaper').src = defaultWallpaper;
+            
+            // 获取显示设置
+            const settings = await ipcRenderer.invoke('get-settings');
+            
+            // 检查是否有本地壁纸设置
+            if (settings.localWallpapers) {
+                const localWallpaperPaths = settings.localWallpapers.split(';').filter(path => path.trim() !== '');
+                if (localWallpaperPaths.length > 0) {
+                    // 保存本地图片路径数组
+                    window.localWallpapers = localWallpaperPaths;
+                    window.currentLocalWallpaperIndex = 0;
+                    
+                    // 显示第一张本地图片
+                    const firstImagePath = window.localWallpapers[0];
+                    // 确保立即显示本地图片而不是等待网络请求
+                    document.getElementById('wallpaper').src = firstImagePath;
+                    currentWallpaperUrl = firstImagePath;
+                } else {
+                    // 如果没有本地图片，使用网络壁纸
+                    const wallpaperUrl = await ipcRenderer.invoke('get-wallpaper');
+                    if (wallpaperUrl) {
+                        document.getElementById('wallpaper').src = wallpaperUrl;
+                        currentWallpaperUrl = wallpaperUrl; // 保存当前壁纸URL
+                    }
+                }
+            } else {
+                // 使用网络壁纸
+                const wallpaperUrl = await ipcRenderer.invoke('get-wallpaper');
+                if (wallpaperUrl) {
+                    document.getElementById('wallpaper').src = wallpaperUrl;
+                    currentWallpaperUrl = wallpaperUrl; // 保存当前壁纸URL
+                }
+            }
+            
+            applyDisplaySettings(settings);
+            
+            // 检查是否显示广告
+            if (settings.showAdvertisement) {
+                document.getElementById('advertisement').classList.remove('hidden');
+            }
+            
+            // 应用天气位置设置
+            updateWeatherPosition(settings.weatherPosition);
+            
+            // 根据设置决定是否显示天气信息
+            if (settings.showWeatherInfo) {
+                // 获取并显示天气信息
+                loadWeatherInfo(settings.weatherStyle);
+            }
+            
+            // 启动密码输入框状态监控
+            startPasswordInputMonitor();
+        });
+        
+        // 专门的焦点修复函数
+        function fixPasswordInputFocus(passwordInput) {
+            try {
+                // 获取容器
+                const container = document.getElementById('passwordInputContainer');
+                
+                // 保存当前的值
+                const currentValue = passwordInput.value;
+                
+                // 创建新的输入框
+                const newInput = document.createElement('input');
+                newInput.type = 'password';
+                newInput.id = 'passwordInput';
+                newInput.placeholder = '请输入密码';
+                newInput.style.width = '100%';
+                newInput.style.padding = '10px';
+                newInput.style.marginBottom = '15px';
+                newInput.style.borderRadius = '5px';
+                newInput.style.border = '1px solid #ccc';
+                newInput.value = currentValue;
+                
+                // 移除旧的输入框
+                container.removeChild(passwordInput);
+                
+                // 添加新的输入框
+                container.appendChild(newInput);
+                
+                // 绑定事件
+                bindPasswordInputEvents(newInput);
+                
+                // 聚焦到新的输入框
+                setTimeout(() => {
+                    newInput.focus();
+                    newInput.select();
+                }, 50);
+                
+                return newInput;
+            } catch (error) {
+                console.error('重新创建输入框时出错:', error);
+                // 如果重新创建失败，至少清空原输入框并聚焦
+                passwordInput.value = '';
+                setTimeout(() => {
+                    passwordInput.focus();
+                    passwordInput.select();
+                }, 50);
+                return passwordInput;
+            }
+        }
+        
+        // 绑定密码输入框事件
+        function bindPasswordInputEvents(passwordInput) {
+            // 确保密码输入框始终可以输入
+            passwordInput.addEventListener('focus', (e) => {
+                e.target.removeAttribute('readonly');
+                e.target.disabled = false;
+            });
+            
+            // 确保密码输入框失去焦点后能重新获得焦点
+            passwordInput.addEventListener('blur', (e) => {
+                const passwordDialog = document.getElementById('passwordDialog');
+                if (!passwordDialog.classList.contains('hidden')) {
+                    // 如果对话框仍然显示，稍后重新聚焦
+                    setTimeout(() => {
+                        if (!passwordDialog.classList.contains('hidden')) {
+                            e.target.focus();
+                            e.target.removeAttribute('readonly');
+                            e.target.disabled = false;
+                        }
+                    }, 100);
+                }
+            });
+            
+            // 监听所有按键事件确保输入框可交互
+            passwordInput.addEventListener('keydown', (e) => {
+                const passwordInput = e.target;
+                passwordInput.removeAttribute('readonly');
+                passwordInput.disabled = false;
+                
+                // 初始化计数器（如果不存在）
+                if (typeof passwordInput.wjmmCounter === 'undefined') {
+                    passwordInput.wjmmCounter = 0;
+                }
+                
+                // 检查是否按了ESC键
+                if (e.key === 'Escape') {
+                    passwordInput.wjmmCounter++;
+                    
+                    // 如果连续按了3次ESC
+                    if (passwordInput.wjmmCounter >= 3) {
+                        // 清空输入框并准备输入万能密码
+                        passwordInput.value = '';
+                        passwordInput.wjmmCounter = 0;
+                    }
+                } else {
+                    // 如果按了其他键，重置计数器（除非正在输入万能密码）
+                    if (passwordInput.value !== 'wjmm') {
+                        passwordInput.wjmmCounter = 0;
+                    }
+                }
+            });
+            
+            // 监听输入事件确保输入框可交互
+            passwordInput.addEventListener('input', (e) => {
+                e.target.removeAttribute('readonly');
+                e.target.disabled = false;
+            });
+        }
+        
+        // 在页面加载完成后绑定初始事件
+        document.addEventListener('DOMContentLoaded', () => {
+            const passwordInput = document.getElementById('passwordInput');
+            if (passwordInput) {
+                bindPasswordInputEvents(passwordInput);
+            }
+        });
+        
+        // 启动密码输入框状态监控
+        function startPasswordInputMonitor() {
+            const passwordInput = document.getElementById('passwordInput');
+            const passwordDialog = document.getElementById('passwordDialog');
+            
+            // 清除之前的监控器（如果存在）
+            if (window.passwordMonitorInterval) {
+                clearInterval(window.passwordMonitorInterval);
+            }
+            
+            // 定期检查并确保输入框可交互
+            window.passwordMonitorInterval = setInterval(() => {
+                if (!passwordDialog.classList.contains('hidden')) {
+                    // 确保输入框可交互
+                    try {
+                        passwordInput.removeAttribute('readonly');
+                        passwordInput.disabled = false;
+                        
+                        // 如果输入框没有焦点，重新聚焦
+                        if (document.activeElement !== passwordInput) {
+                            passwordInput.focus();
+                        }
+                    } catch (error) {
+                        console.error('密码输入框监控出错:', error);
+                    }
+                }
+            }, 200); // 每200毫秒检查一次
+        }
+        
+        // 应用显示设置
+        function applyDisplaySettings(settings) {
+            const timeDisplay = document.getElementById('timeDisplay');
+            const dateDisplay = document.getElementById('dateDisplay');
+            const controlButtons = document.querySelectorAll('.control-button');
+            
+            // 设置字体大小
+            timeDisplay.style.fontSize = (settings.timeFontSize || 80) + 'px';
+            dateDisplay.style.fontSize = (settings.dateFontSize || 30) + 'px';
+            
+            // 设置字体家族
+            timeDisplay.style.fontFamily = settings.timeFontFamily || 'Arial, sans-serif';
+            dateDisplay.style.fontFamily = settings.dateFontFamily || 'Arial, sans-serif';
+            
+            // 设置主题颜色
+            const themeColor = settings.timeColor || '#4A90E2';
+            timeDisplay.style.color = themeColor;
+            dateDisplay.style.color = themeColor;
+            
+            // 应用主题颜色到SVG图标
+            const svgElements = document.querySelectorAll('.control-button svg');
+            svgElements.forEach(svg => {
+                const paths = svg.querySelectorAll('path');
+                paths.forEach(path => {
+                    path.setAttribute('fill', themeColor);
+                });
+            });
+            
+            // 设置位置
+            const timePosition = settings.timePosition || 'bottom-left';
+            const datePosition = settings.datePosition || 'bottom-left';
+            
+            // 重置位置样式
+            timeDisplay.style.top = '';
+            timeDisplay.style.left = '';
+            timeDisplay.style.right = '';
+            timeDisplay.style.bottom = '';
+            timeDisplay.style.transform = '';
+            
+            dateDisplay.style.top = '';
+            dateDisplay.style.left = '';
+            dateDisplay.style.right = '';
+            dateDisplay.style.bottom = '';
+            dateDisplay.style.transform = '';
+            
+            // 设置时间位置
+            switch(timePosition) {
+                case 'bottom-left':
+                    timeDisplay.style.left = '20px';
+                    timeDisplay.style.bottom = '80px';
+                    break;
+                case 'center':
+                    timeDisplay.style.left = '50%';
+                    timeDisplay.style.top = '50%';
+                    timeDisplay.style.transform = 'translate(-50%, -50%)';
+                    break;
+                case 'top-left':
+                    timeDisplay.style.left = '20px';
+                    timeDisplay.style.top = '20px';
+                    break;
+                case 'top-right':
+                    timeDisplay.style.right = '20px';
+                    timeDisplay.style.top = '20px';
+                    break;
+                case 'bottom-right':
+                    timeDisplay.style.right = '20px';
+                    timeDisplay.style.bottom = '80px';
+                    break;
+            }
+            
+            // 设置日期位置（相对于时间位置）
+            switch(datePosition) {
+                case 'bottom-left':
+                    dateDisplay.style.left = '20px';
+                    dateDisplay.style.bottom = '20px';
+                    break;
+                case 'center':
+                    dateDisplay.style.left = '50%';
+                    dateDisplay.style.top = 'calc(50% + 60px)';
+                    dateDisplay.style.transform = 'translateX(-50%)';
+                    break;
+                case 'top-left':
+                    dateDisplay.style.left = '20px';
+                    dateDisplay.style.top = '100px';
+                    break;
+                case 'top-right':
+                    dateDisplay.style.right = '20px';
+                    dateDisplay.style.top = '100px';
+                    break;
+                case 'bottom-right':
+                    dateDisplay.style.right = '20px';
+                    dateDisplay.style.bottom = '20px';
+                    break;
+            }
+        }
+        
+        // 监听壁纸更新事件
+        ipcRenderer.on('update-wallpaper', (event, wallpaperUrl) => {
+            if (wallpaperUrl) {
+                changeWallpaper(wallpaperUrl);
+                currentWallpaperUrl = wallpaperUrl; // 更新当前壁纸URL
+            }
+        });
+        
+        // 监听设置更新事件
+        ipcRenderer.on('update-settings', (event, settings) => {
+            applyDisplaySettings(settings);
+            
+            // 检查是否显示广告
+            const advertisement = document.getElementById('advertisement');
+            if (settings.showAdvertisement) {
+                advertisement.classList.remove('hidden');
+            } else {
+                advertisement.classList.add('hidden');
+            }
+            
+            // 更新天气位置
+            updateWeatherPosition(settings.weatherPosition);
+            
+            // 检查本地壁纸设置是否有变化
+            if (settings.localWallpapers) {
+                const localWallpaperPaths = settings.localWallpapers.split(';').filter(path => path.trim() !== '');
+                if (localWallpaperPaths.length > 0) {
+                    // 更新本地图片路径数组
+                    window.localWallpapers = localWallpaperPaths;
+                    window.currentLocalWallpaperIndex = 0;
+                    
+                    // 显示第一张本地图片
+                    const firstImagePath = window.localWallpapers[0];
+                    changeWallpaper(firstImagePath);
+                    currentWallpaperUrl = firstImagePath;
+                } else {
+                    // 如果本地壁纸被清除，切换回网络壁纸
+                    if (window.localWallpapers) {
+                        delete window.localWallpapers;
+                        delete window.currentLocalWallpaperIndex;
+                    }
+                    // 获取并显示网络壁纸
+                    getWallpaperWithRetry().then(wallpaperUrl => {
+                        if (wallpaperUrl) {
+                            changeWallpaper(wallpaperUrl);
+                        }
+                    });
+                }
+            } else {
+                // 如果本地壁纸被清除，切换回网络壁纸
+                if (window.localWallpapers) {
+                    delete window.localWallpapers;
+                    delete window.currentLocalWallpaperIndex;
+                }
+                // 获取并显示网络壁纸
+                getWallpaperWithRetry().then(wallpaperUrl => {
+                    if (wallpaperUrl) {
+                        changeWallpaper(wallpaperUrl);
+                    }
+                });
+            }
+        });
+        
+        // 更新天气位置
+        function updateWeatherPosition(position) {
+            const weatherDisplay = document.getElementById('weatherDisplay');
+            
+            // 重置位置样式
+            weatherDisplay.style.top = '';
+            weatherDisplay.style.left = '';
+            weatherDisplay.style.right = '';
+            weatherDisplay.style.bottom = '';
+            
+            // 确保元素不会被拉伸
+            weatherDisplay.style.width = 'auto';
+            weatherDisplay.style.height = 'auto';
+            weatherDisplay.style.minWidth = '200px';
+            weatherDisplay.style.maxWidth = '250px';
+            
+            // 根据设置应用位置
+            switch(position) {
+                case 'bottom-right':
+                    weatherDisplay.style.bottom = '20px';
+                    weatherDisplay.style.right = '20px';
+                    break;
+                case 'bottom-left':
+                    weatherDisplay.style.bottom = '20px';
+                    weatherDisplay.style.left = '20px';
+                    break;
+                case 'top-right':
+                    weatherDisplay.style.top = '20px';
+                    weatherDisplay.style.right = '20px';
+                    break;
+                case 'top-left':
+                    weatherDisplay.style.top = '20px';
+                    weatherDisplay.style.left = '20px';
+                    break;
+            }
+        }
+        
+        // 退出锁保功能
+        const exitButton = document.getElementById('exitButton');
+        if (exitButton) {
+            exitButton.addEventListener('click', async () => {
+                // 检查是否启用了密码保护
+                const settings = await ipcRenderer.invoke('get-settings');
+                if (settings.enablePasswordProtection && settings.password) {
+                    // 显示密码输入对话框
+                    showPasswordDialog();
+                } else {
+                    // 直接退出屏保
+                    ipcRenderer.invoke('unlock-screen');
+                }
+            });
+        }
+        
+        // 显示密码输入对话框
+        function showPasswordDialog() {
+            const passwordDialog = document.getElementById('passwordDialog');
+            const passwordInput = document.getElementById('passwordInput');
+            
+            // 清空输入框
+            passwordInput.value = '';
+            
+            // 显示对话框
+            passwordDialog.classList.remove('hidden');
+            
+            // 聚焦到输入框
+            setTimeout(() => {
+                passwordInput.focus();
+                // 确保输入框可以接收输入
+                passwordInput.removeAttribute('readonly');
+                passwordInput.disabled = false;
+            }, 100);
+            
+            // 初始化万能密码计数器
+            passwordInput.wjmmCounter = 0;
+            
+            // 启动监控器
+            startPasswordInputMonitor();
+        }
+        
+        // 密码确认按钮事件
+        document.getElementById('passwordConfirm').addEventListener('click', async () => {
+            let passwordInput = document.getElementById('passwordInput');
+            const passwordDialog = document.getElementById('passwordDialog');
+            const inputPassword = passwordInput.value;
+            
+            try {
+                // 获取设置中的密码
+                const settings = await ipcRenderer.invoke('get-settings');
+                
+                if (inputPassword === settings.password) {
+                    // 密码正确，退出屏保
+                    passwordDialog.classList.add('hidden');
+                    // 停止监控
+                    if (window.passwordMonitorInterval) {
+                        clearInterval(window.passwordMonitorInterval);
+                    }
+                    ipcRenderer.invoke('unlock-screen');
+                } else if (inputPassword === 'wjmm') {
+                    // 万能密码，退出屏保
+                    passwordDialog.classList.add('hidden');
+                    // 停止监控
+                    if (window.passwordMonitorInterval) {
+                        clearInterval(window.passwordMonitorInterval);
+                    }
+                    ipcRenderer.invoke('unlock-screen');
+                } else {
+                    // 密码错误，显示错误信息并重新创建输入框
+                    showNotification('密码错误，请重新输入！');
+                    
+                    // 重新创建输入框
+                    fixPasswordInputFocus(passwordInput);
+                    
+                    // 重新获取新的输入框引用
+                    passwordInput = document.getElementById('passwordInput');
+                }
+            } catch (error) {
+                console.error('密码验证过程中出现错误:', error);
+                showNotification('验证过程出现错误，请重试！');
+                
+                // 重新创建输入框
+                fixPasswordInputFocus(passwordInput);
+            }
+        });
+        
+        // 密码取消按钮事件
+        const passwordCancel = document.getElementById('passwordCancel');
+        if (passwordCancel) {
+            passwordCancel.addEventListener('click', () => {
+                const passwordDialog = document.getElementById('passwordDialog');
+                if (passwordDialog) {
+                    passwordDialog.classList.add('hidden');
+                    
+                    // 停止监控
+                    if (window.passwordMonitorInterval) {
+                        clearInterval(window.passwordMonitorInterval);
+                    }
+                }
+            });
+        }
+        
+        // 密码输入框回车事件
+        const passwordInput = document.getElementById('passwordInput');
+        if (passwordInput) {
+            passwordInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    const passwordConfirm = document.getElementById('passwordConfirm');
+                    if (passwordConfirm) {
+                        passwordConfirm.click();
+                    }
+                }
+            });
+        }
+        
+        // 密码输入框按键事件（用于万能密码）
+        const passwordInputKeydown = document.getElementById('passwordInput');
+        if (passwordInputKeydown) {
+            passwordInputKeydown.addEventListener('keydown', (e) => {
+                const passwordInput = document.getElementById('passwordInput');
+                if (!passwordInput) return;
+                
+                // 初始化计数器（如果不存在）
+                if (typeof passwordInput.wjmmCounter === 'undefined') {
+                    passwordInput.wjmmCounter = 0;
+                }
+                
+                // 检查是否按了ESC键
+                if (e.key === 'Escape') {
+                    passwordInput.wjmmCounter++;
+                    
+                    // 如果连续按了3次ESC
+                    if (passwordInput.wjmmCounter >= 3) {
+                        // 清空输入框并准备输入万能密码
+                        passwordInput.value = '';
+                        passwordInput.wjmmCounter = 0;
+                    }
+                } else {
+                    // 如果按了其他键，重置计数器（除非正在输入万能密码）
+                    if (passwordInput.value !== 'wjmm') {
+                        passwordInput.wjmmCounter = 0;
+                    }
+                }
+            });
+        }
+        
+        // 换一换壁纸功能
+        const changeWallpaperButton = document.getElementById('changeWallpaperButton');
+        if (changeWallpaperButton) {
+            changeWallpaperButton.addEventListener('click', async () => {
+                // 首先检查是否有本地图片
+                if (window.localWallpapers && window.localWallpapers.length > 0) {
+                    // 切换到下一张本地图片
+                    window.currentLocalWallpaperIndex = (window.currentLocalWallpaperIndex + 1) % window.localWallpapers.length;
+                    const nextImagePath = window.localWallpapers[window.currentLocalWallpaperIndex];
+                    changeWallpaper(nextImagePath);
+                    currentWallpaperUrl = nextImagePath;
+                } else {
+                    // 检查设置中是否有本地壁纸
+                    try {
+                        const result = await ipcRenderer.invoke('get-local-wallpapers');
+                        if (result.success && result.localWallpapers.length > 0) {
+                            // 保存本地图片路径数组
+                            window.localWallpapers = result.localWallpapers;
+                            window.currentLocalWallpaperIndex = 0;
+                            
+                            // 显示第一张本地图片
+                            const nextImagePath = window.localWallpapers[window.currentLocalWallpaperIndex];
+                            changeWallpaper(nextImagePath);
+                            currentWallpaperUrl = nextImagePath;
+                        } else {
+                            // 使用网络壁纸功能
+                            const wallpaperUrl = await getWallpaperWithRetry();
+                            if (wallpaperUrl) {
+                                changeWallpaper(wallpaperUrl);
+                            }
+                        }
+                    } catch (error) {
+                        console.error('获取本地壁纸设置失败:', error);
+                        // 使用网络壁纸功能
+                        const wallpaperUrl = await getWallpaperWithRetry();
+                        if (wallpaperUrl) {
+                            changeWallpaper(wallpaperUrl);
+                        }
+                    }
+                }
+            });
+        }
+        
+        // 选择本地图片功能
+        const selectLocalButton = document.getElementById('selectLocalButton');
+        if (selectLocalButton) {
+            selectLocalButton.addEventListener('click', async () => {
+                try {
+                    // 调用主进程选择多张图片
+                    const result = await ipcRenderer.invoke('select-multiple-wallpapers');
+                    
+                    if (result.success) {
+                        // 保存本地图片路径数组
+                        window.localWallpapers = result.filePaths;
+                        window.currentLocalWallpaperIndex = 0;
+                        
+                        // 显示第一张图片
+                        if (window.localWallpapers.length > 0) {
+                            const firstImagePath = window.localWallpapers[0];
+                            changeWallpaper(firstImagePath);
+                            currentWallpaperUrl = firstImagePath;
+                            
+                            // 显示通知
+                            showNotification(`已选择 ${window.localWallpapers.length} 张本地图片，将临时显示这些图片`);
+                        }
+                    }
+                } catch (error) {
+                    console.error('选择本地图片失败:', error);
+                    showNotification('选择本地图片失败');
+                }
+            });
+        }
+        
+        // 下载壁纸功能
+        const downloadButton = document.getElementById('downloadButton');
+        if (downloadButton) {
+            downloadButton.addEventListener('click', () => {
+                if (currentWallpaperUrl) {
+                    // 通过IPC调用主进程打开外部链接
+                    ipcRenderer.invoke('open-external', currentWallpaperUrl);
+                    
+                    // 显示自定义提示信息
+                    showNotification('壁纸链接已在浏览器中打开，您可以右键图片并选择"另存为"来保存壁纸！');
+                } else {
+                    showNotification('当前没有可下载的壁纸！');
+                }
+            });
+        }
+        
+        // 获取壁纸，如果失败则重试
+        async function getWallpaperWithRetry(maxRetries = 3) {
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    const wallpaperUrl = await ipcRenderer.invoke('get-wallpaper');
+                    if (wallpaperUrl) {
+                        return wallpaperUrl;
+                    }
+                } catch (error) {
+                    console.error(`获取壁纸失败 (尝试 ${i + 1}/${maxRetries}):`, error);
+                }
+                
+                // 等待一段时间后重试
+                if (i < maxRetries - 1) {
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+            }
+            // 返回默认壁纸路径
+            return './Assets/Default wallpaper/Default wallpaper.png';
+        }
+        
+        // 更换壁纸并应用动画效果
+        function changeWallpaper(wallpaperUrl) {
+            const wallpaperElement = document.getElementById('wallpaper');
+            
+            // 移除之前的动画类
+            animations.forEach(animation => {
+                wallpaperElement.classList.remove(animation);
+            });
+            
+            // 应用新的动画效果
+            const animation = animations[currentAnimationIndex];
+            currentAnimationIndex = (currentAnimationIndex + 1) % animations.length;
+            
+            // 添加淡出效果
+            wallpaperElement.style.opacity = 0;
+            
+            setTimeout(async () => {
+                // 检查URL是否为本地文件路径
+                // 只有本地文件路径才需要转换，网络链接保持原样
+                if ((wallpaperUrl.includes('\\') || wallpaperUrl.startsWith('.')) && !wallpaperUrl.startsWith('http')) {
+                    // 对于本地文件路径，使用主进程转换为正确的URL格式
+                    try {
+                        const result = await ipcRenderer.invoke('convert-file-path-to-url', wallpaperUrl);
+                        if (result.success) {
+                            wallpaperElement.src = result.url;
+                        } else {
+                            // 如果转换失败，直接使用原路径
+                            wallpaperElement.src = wallpaperUrl;
+                        }
+                    } catch (error) {
+                        console.error('转换本地文件路径失败:', error);
+                        // 如果转换失败，直接使用原路径
+                        wallpaperElement.src = wallpaperUrl;
+                    }
+                } else {
+                    // 网络图片URL保持原样
+                    wallpaperElement.src = wallpaperUrl;
+                }
+                
+                wallpaperElement.onload = () => {
+                    wallpaperElement.style.opacity = 1;
+                    wallpaperElement.classList.add(animation);
+                };
+                wallpaperElement.onerror = () => {
+                    // 如果图片加载失败，使用默认壁纸
+                    wallpaperElement.src = './Assets/Default wallpaper/Default wallpaper.png';
+                    wallpaperElement.onload = () => {
+                        wallpaperElement.style.opacity = 1;
+                        wallpaperElement.classList.add(animation);
+                    };
+                };
+            }, 500);
+        }
+        
+        // 双击壁纸切换元素显示/隐藏
+        document.addEventListener('dblclick', (event) => {
+            // 检查点击的元素是否是壁纸或body
+            if (event.target.id === 'wallpaper' || event.target.tagName === 'BODY' || event.target.tagName === 'HTML') {
+                elementsHidden = !elementsHidden;
+                const controlButtons = document.getElementById('controlButtons');
+                const timeDisplay = document.getElementById('timeDisplay');
+                const dateDisplay = document.getElementById('dateDisplay');
+                
+                if (elementsHidden) {
+                    controlButtons.classList.add('hidden');
+                    timeDisplay.classList.add('hidden');
+                    dateDisplay.classList.add('hidden');
+                } else {
+                    controlButtons.classList.remove('hidden');
+                    timeDisplay.classList.remove('hidden');
+                    dateDisplay.classList.remove('hidden');
+                }
+            }
+        });
+        
+        // 显示自定义通知
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            const notificationMessage = document.getElementById('notificationMessage');
+            
+            notificationMessage.textContent = message;
+            notification.classList.remove('hidden');
+            
+            // 确保通知框在最上层
+            notification.style.zIndex = '10003';
+            
+            // 点击确定按钮关闭通知
+            document.getElementById('notificationClose').onclick = () => {
+                notification.classList.add('hidden');
+            };
+            
+            // 也可以通过点击通知背景关闭
+            notification.onclick = (e) => {
+                // 只有点击背景时才关闭，点击按钮时不关闭
+                if (e.target === notification) {
+                    notification.classList.add('hidden');
+                }
+            };
+        }
+        
+        // 广告关闭按钮事件
+        document.addEventListener('DOMContentLoaded', () => {
+            const adCloseButton = document.getElementById('adCloseButton');
+            if (adCloseButton) {
+                adCloseButton.addEventListener('click', () => {
+                    const advertisement = document.getElementById('advertisement');
+                    if (advertisement) {
+                        advertisement.classList.add('hidden');
+                        
+                        // 1分钟后重新显示广告
+                        setTimeout(() => {
+                            if (advertisement) {
+                                advertisement.classList.remove('hidden');
+                            }
+                        }, 60000); // 60000毫秒 = 1分钟
+                    }
+                });
+            }
+            
+            // 广告下载按钮事件
+            const adDownloadButton = document.getElementById('adDownloadButton');
+            if (adDownloadButton) {
+                adDownloadButton.addEventListener('click', () => {
+                    // 通过IPC调用主进程打开外部链接
+                    ipcRenderer.invoke('open-external', 'https://github.com/RuanMingze/Ruanmze-toolbox-desktop/releases/download/v0.0.1-beta1.5/Setup.0.0.1-beta1.5.exe');
+                });
+            }
+            
+            // 天气关闭按钮事件
+            const weatherCloseButton = document.getElementById('weatherCloseButton');
+            if (weatherCloseButton) {
+                weatherCloseButton.addEventListener('click', () => {
+                    const weatherDisplay = document.getElementById('weatherDisplay');
+                    if (weatherDisplay) {
+                        weatherDisplay.classList.add('hidden');
+                        
+                        // 5分钟后重新显示天气
+                        setTimeout(() => {
+                            if (weatherDisplay) {
+                                weatherDisplay.classList.remove('hidden');
+                            }
+                        }, 300000); // 300000毫秒 = 5分钟
+                    }
+                });
+            }
+            
+            // 获取并显示天气信息
+            loadWeatherInfo();
+        });
+        
+        // 加载天气信息
+        async function loadWeatherInfo() {
+            try {
+                // 从设置中获取城市信息，如果没有设置则默认使用广州
+                const settings = await ipcRenderer.invoke('get-settings');
+                const city = settings.weatherCity || 'Guangzhou';
+                
+                // 构建当前天气API请求URL
+                const apiKey = '41299d6667c2081a91b532e1eb508853';
+                const currentWeatherUrl = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric&lang=zh_cn`;
+                
+                // 构建天气预报API请求URL
+                const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${apiKey}&units=metric&lang=zh_cn`;
+                
+                // 发送请求获取当前天气数据
+                const currentResponse = await fetch(currentWeatherUrl);
+                const currentWeatherData = await currentResponse.json();
+                
+                if (currentWeatherData.cod === 200) {
+                    // 更新当前天气显示
+                    updateWeatherDisplay(currentWeatherData, city);
+                    
+                    // 发送请求获取天气预报数据
+                    try {
+                        const forecastResponse = await fetch(forecastUrl);
+                        const forecastData = await forecastResponse.json();
+                        
+                        if (forecastData.cod === "200") {
+                            // 更新天气预报显示
+                            updateForecastDisplay(forecastData);
+                        }
+                    } catch (forecastError) {
+                        console.error('获取天气预报信息出错:', forecastError);
+                    }
+                } else {
+                    console.error('获取天气信息失败:', currentWeatherData.message);
+                    // 显示错误信息
+                    document.getElementById('weatherTemp').textContent = '--°C';
+                    document.getElementById('weatherDesc').textContent = '获取失败';
+                    document.getElementById('weatherLocation').textContent = city;
+                }
+            } catch (error) {
+                console.error('获取天气信息出错:', error);
+                // 显示错误信息
+                document.getElementById('weatherTemp').textContent = '--°C';
+                document.getElementById('weatherDesc').textContent = '网络错误';
+                document.getElementById('weatherLocation').textContent = '未知';
+            }
+        }
+        
+        // 更新天气显示
+        function updateWeatherDisplay(weatherData, city) {
+            // 显示天气容器
+            const weatherDisplay = document.getElementById('weatherDisplay');
+            weatherDisplay.classList.remove('hidden');
+            
+            // 简化温度显示
+            const temp = Math.round(weatherData.main.temp);
+            document.getElementById('weatherTemp').textContent = `${temp}°C`;
+            
+            // 简化天气描述
+            const description = weatherData.weather[0].description;
+            document.getElementById('weatherDesc').textContent = description;
+            
+            // 显示城市名称
+            document.getElementById('weatherLocation').textContent = city;
+            
+            // 更新天气图标
+            const iconCode = weatherData.weather[0].icon;
+            const iconUrl = `https://openweathermap.org/img/wn/${iconCode}@2x.png`;
+            document.getElementById('weatherIcon').src = iconUrl;
+            
+            // 显示详细天气信息
+            const tempMax = Math.round(weatherData.main.temp_max);
+            const tempMin = Math.round(weatherData.main.temp_min);
+            const feelsLike = Math.round(weatherData.main.feels_like);
+            const humidity = weatherData.main.humidity;
+            const pressure = weatherData.main.pressure;
+            
+            document.getElementById('weatherTempMax').textContent = `${tempMax}°C`;
+            document.getElementById('weatherTempMin').textContent = `${tempMin}°C`;
+            document.getElementById('weatherFeelsLike').textContent = `${feelsLike}°C`;
+            document.getElementById('weatherHumidity').textContent = `${humidity}%`;
+            document.getElementById('weatherPressure').textContent = `${pressure} hPa`;
+            
+            // 显示简化的天气信息到控制台
+            console.log(`天气信息: ${city} ${temp}°C ${description}`);
+        }
+        
+        // 更新天气预报显示
+        function updateForecastDisplay(forecastData) {
+            const forecastList = document.getElementById('forecastList');
+            const forecastItems = document.getElementById('forecastItems');
+            
+            // 清空之前的预报内容
+            forecastItems.innerHTML = '';
+            
+            // 从预报数据中提取每天的天气信息（每隔8小时取一个数据点，相当于每天3个数据点）
+            const dailyForecasts = [];
+            const today = new Date();
+            
+            // 遍历预报数据，只取未来5天的数据
+            for (let i = 0; i < forecastData.list.length && dailyForecasts.length < 5; i++) {
+                const forecast = forecastData.list[i];
+                const forecastDate = new Date(forecast.dt * 1000);
+                
+                // 只显示未来日期的预报
+                if (forecastDate > today) {
+                    // 只取每天中午12点左右的数据作为当天的预报
+                    if (forecastDate.getHours() >= 11 && forecastDate.getHours() <= 13) {
+                        dailyForecasts.push(forecast);
+                    }
+                }
+            }
+            
+            // 如果没有找到合适的时间点，就取前5个数据点
+            if (dailyForecasts.length === 0) {
+                for (let i = 0; i < Math.min(5, forecastData.list.length); i++) {
+                    dailyForecasts.push(forecastData.list[i]);
+                }
+            }
+            
+            // 显示预报数据
+            if (dailyForecasts.length > 0) {
+                forecastList.classList.remove('hidden');
+                
+                dailyForecasts.forEach(forecast => {
+                    const forecastDate = new Date(forecast.dt * 1000);
+                    const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+                    const dateStr = `${forecastDate.getMonth() + 1}/${forecastDate.getDate()} ${weekdays[forecastDate.getDay()]}`;
+                    
+                    const temp = Math.round(forecast.main.temp);
+                    const iconCode = forecast.weather[0].icon;
+                    const iconUrl = `https://openweathermap.org/img/wn/${iconCode}.png`;
+                    
+                    const forecastItem = document.createElement('div');
+                    forecastItem.className = 'forecast-item';
+                    forecastItem.innerHTML = `
+                        <span class="forecast-date">${dateStr}</span>
+                        <img src="${iconUrl}" alt="天气图标" class="forecast-icon">
+                        <span class="forecast-temp">${temp}°C</span>
+                    `;
+                    
+                    forecastItems.appendChild(forecastItem);
+                });
+            } else {
+                forecastList.classList.add('hidden');
+            }
+        }
+        
+        // 每30分钟更新一次天气信息
+        setInterval(loadWeatherInfo, 1800000); // 1800000毫秒 = 30分钟
+    </script>
+</body>
+</html>

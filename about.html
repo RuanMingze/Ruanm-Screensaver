@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>关于 Ruanm 屏保应用</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            color: white;
+            text-align: center;
+            padding-top: 60px; /* 为自定义边栏留出空间 */
+            overflow: hidden; /* 隐藏默认滚动条 */
+        }
+        
+        /* 自定义边栏样式 */
+        .custom-titlebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 40px;
+            background-color: #333;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 10px;
+            z-index: 1000;
+            -webkit-app-region: drag; /* 允许拖拽窗口 */
+        }
+        
+        .titlebar-title {
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        .titlebar-controls {
+            display: flex;
+            gap: 5px;
+            -webkit-app-region: no-drag; /* 控制按钮不参与拖拽 */
+        }
+        
+        .titlebar-button {
+            width: 30px;
+            height: 25px;
+            background-color: transparent;
+            border: none;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+        
+        .titlebar-button:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .titlebar-button.close:hover {
+            background-color: #e81123;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            max-height: calc(100vh - 120px);
+            overflow-y: auto;
+        }
+        
+        /* 自定义滚动条样式 */
+        .container::-webkit-scrollbar {
+            width: 12px;
+        }
+        
+        .container::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        
+        .container::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+        }
+        
+        .container::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+        h1 {
+            margin-top: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        .developer {
+            font-size: 20px;
+            margin: 20px 0;
+            color: #ffd700;
+        }
+        .version {
+            font-size: 16px;
+            opacity: 0.8;
+            margin-bottom: 20px;
+        }
+        .section {
+            text-align: left;
+            margin: 25px 0;
+        }
+        .section h2 {
+            font-size: 22px;
+            color: #ffd700;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+        .section p {
+            font-size: 16px;
+            line-height: 1.6;
+            margin: 15px 0;
+        }
+        .features-list {
+            text-align: left;
+            margin: 15px 0;
+            padding-left: 20px;
+        }
+        .features-list li {
+            margin: 10px 0;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+        .close-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 12px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+        .close-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <!-- 自定义边栏 -->
+    <div class="custom-titlebar">
+        <div class="titlebar-title">关于 Ruanm 屏保应用</div>
+        <div class="titlebar-controls">
+            <button class="titlebar-button minimize" id="minimizeButton" title="最小化">−</button>
+            <button class="titlebar-button maximize" id="maximizeButton" title="最大化">□</button>
+            <button class="titlebar-button close" id="closeButton" title="关闭">×</button>
+        </div>
+    </div>
+    
+    <div class="container">
+        <h1>Ruanm 屏保应用</h1>
+        <div class="developer">开发者: Ruanm(Ruan Mingze)</div>
+        <div class="version">版本: 1.0.2</div>
+        
+        <div class="section">
+            <h2>简介</h2>
+            <p>这是一款基于 Electron 开发的功能强大的屏保应用，具有定时自动屏保和动态壁纸切换功能，提供美观的界面和丰富的自定义选项。</p>
+        </div>
+        
+        <div class="section">
+            <h2>功能特性</h2>
+            <ul class="features-list">
+                <li><strong>定时屏保</strong>：可设置几分钟后自动屏保</li>
+                <li><strong>动态壁纸</strong>：使用 https://api.mmp.cc/api/ 获取高清壁纸</li>
+                <li><strong>壁纸切换</strong>：可设置每隔几分钟切换一次屏保壁纸</li>
+                <li><strong>多种壁纸类型</strong>：支持4K、风景、妹子、游戏、动漫等多种壁纸类型，还支持随机壁纸</li>
+                <li><strong>自定义显示</strong>：可调节时间日期的字体大小、位置和主题颜色</li>
+                <li><strong>全屏覆盖</strong>：屏保界面完全覆盖屏幕，包括任务栏</li>
+                <li><strong>交互功能</strong>：双击壁纸可隐藏/显示时间日期和控制按钮</li>
+                <li><strong>多样化动画</strong>：提供多种壁纸切换动画效果</li>
+                <li><strong>壁纸下载</strong>：可直接下载当前显示的壁纸</li>
+                <li><strong>可选广告</strong>：尊重用户选择，默认不显示广告，可选择开启</li>
+            </ul>
+        </div>
+        
+        <div class="section">
+            <h2>使用说明</h2>
+            <p><strong>设置界面</strong>：可设置自动屏保时间、壁纸切换时间、壁纸类型，调节时间日期的字体大小、位置和主题颜色，以及选择是否显示产品广告。</p>
+            <p><strong>屏保界面</strong>：显示当前时间与日期，自动加载壁纸并在设定时间后切换。右上角有下载壁纸、换一换和退出屏保三个按钮。双击壁纸区域可隐藏/显示时间日期和控制按钮。</p>
+        </div>
+        
+        <div class="section">
+            <h2>开发技术</h2>
+            <p>本应用基于 Electron、HTML/CSS/JavaScript 和 Axios（HTTP请求）等技术开发。</p>
+        </div>
+        
+        <button class="close-btn" id="closeBtn">关闭</button>
+    </div>
+    
+    <script>
+        // 添加窗口控制功能
+        document.addEventListener('DOMContentLoaded', () => {
+            const { ipcRenderer } = require('electron');
+            
+            // 最小化按钮
+            document.getElementById('minimizeButton').addEventListener('click', () => {
+                try {
+                    ipcRenderer.invoke('minimize-window');
+                } catch (error) {
+                    console.error('最小化窗口时出错:', error);
+                }
+            });
+            
+            // 最大化按钮
+            document.getElementById('maximizeButton').addEventListener('click', () => {
+                try {
+                    ipcRenderer.invoke('maximize-window');
+                } catch (error) {
+                    console.error('最大化窗口时出错:', error);
+                }
+            });
+            
+            // 关闭按钮
+            document.getElementById('closeButton').addEventListener('click', () => {
+                try {
+                    window.close();
+                } catch (error) {
+                    console.error('关闭窗口时出错:', error);
+                    // 如果无法关闭窗口，尝试其他方法
+                    try {
+                        const { remote } = require('electron');
+                        const currentWindow = remote.getCurrentWindow();
+                        currentWindow.close();
+                    } catch (remoteError) {
+                        console.error('通过remote关闭窗口时出错:', remoteError);
+                        // 最后尝试隐藏窗口
+                        try {
+                            const { remote } = require('electron');
+                            const currentWindow = remote.getCurrentWindow();
+                            currentWindow.hide();
+                        } catch (hideError) {
+                            console.error('隐藏窗口时出错:', hideError);
+                        }
+                    }
+                }
+            });
+            
+            // 底部关闭按钮
+            document.getElementById('closeBtn').addEventListener('click', () => {
+                try {
+                    window.close();
+                } catch (error) {
+                    console.error('关闭窗口时出错:', error);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

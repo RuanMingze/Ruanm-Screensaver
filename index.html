@@ -1,0 +1,1575 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Ruanm 屏保设置</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+            padding-top: 60px; /* 为自定义边栏留出空间 */
+            overflow: hidden; /* 隐藏默认滚动条 */
+        }
+        
+        /* 自定义边栏样式 */
+        .custom-titlebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 40px;
+            background-color: #333;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 10px;
+            z-index: 1000;
+            -webkit-app-region: drag; /* 允许拖拽窗口 */
+        }
+        
+        .titlebar-title {
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        .titlebar-controls {
+            display: flex;
+            gap: 5px;
+            -webkit-app-region: no-drag; /* 控制按钮不参与拖拽 */
+        }
+        
+        .titlebar-button {
+            width: 30px;
+            height: 25px;
+            background-color: transparent;
+            border: none;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+        
+        .titlebar-button:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .titlebar-button.close:hover {
+            background-color: #e81123;
+        }
+        
+        /* 确认退出对话框样式 */
+        .exit-dialog {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            display: none;
+        }
+        
+        .exit-dialog-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .exit-dialog-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+        
+        .exit-dialog-message {
+            font-size: 16px;
+            color: #555;
+            margin-bottom: 30px;
+        }
+        
+        .exit-dialog-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .exit-dialog-button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .exit-btn {
+            background-color: #f44336;
+            color: white;
+        }
+        
+        .tray-btn {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        .cancel-btn {
+            background-color: #ccc;
+            color: black;
+        }
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-height: calc(100vh - 120px);
+            overflow-y: auto;
+        }
+        
+        /* 自定义滚动条样式 */
+        .container::-webkit-scrollbar {
+            width: 12px;
+        }
+        
+        .container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        .container::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+        
+        .container::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        .form-row {
+            display: flex;
+            gap: 10px;
+        }
+        .form-row .form-group {
+            flex: 1;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .btn-danger {
+            background-color: #f44336;
+        }
+        .btn-danger:hover {
+            background-color: #da190b;
+        }
+        .btn-warning {
+            background-color: #ff9800;
+        }
+        .btn-warning:hover {
+            background-color: #e68900;
+        }
+        .btn-info {
+            background-color: #2196F3;
+        }
+        .btn-about-info {
+            background-color: #42cc6bce;
+        }
+        .btn-Startup-info {
+            background-color: #cc428ece;
+        }
+        .btn-Update-info {
+            background-color: #ffae00;
+        }
+        
+        .btn-about-info:hover {
+            background-color: #38b35d; /* 深绿色 */
+        }
+        .btn-Startup-info:hover {
+            background-color: #b338ce; /* 深紫色 */
+        }
+        .btn-Update-info:hover {
+            background-color: #e68900; /* 深橙色 */
+        }
+        
+        .btn-help-info {
+            background-color: #00f7ff;
+        }
+        .btn-help-info:hover {
+            background-color: #00b4c4; /* 深青色 */
+        }
+        .btn-path {
+            background-color: #9c27b0; /* 紫色 */
+        }
+        .btn-path:hover {
+            background-color: #7b1fa2; /* 深紫色 */
+        }
+        .btn-info:hover {
+            background-color: #0b7dda;
+        }
+        .btn-info.active {
+            background-color: #0b7dda;
+        }
+        .control-buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .control-buttons button {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding: 15px 10px;
+            font-size: 16px;
+        }
+        
+        /* 颜色显示样式 */
+        .color-preview {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            vertical-align: middle;
+            margin-left: 10px;
+        }
+        
+        /* 自定义按钮样式 */
+        .custom-toggle-button {
+            display: inline-block;
+            padding: 8px 16px;
+            background-color: #e0e0e0;
+            border: 2px solid #ccc;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            text-align: center;
+            transition: all 0.3s;
+            user-select: none;
+        }
+        
+        .custom-toggle-button.active {
+            background-color: #4CAF50;
+            border-color: #45a049;
+            color: white;
+        }
+        
+        .custom-toggle-button:hover {
+            background-color: #d5d5d5;
+        }
+        
+        .custom-toggle-button.active:hover {
+            background-color: #45a049;
+        }
+        
+        /* 自定义提示框样式 */
+        .custom-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .modal-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .modal-body {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #555;
+        }
+        
+        .modal-body pre {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .modal-footer {
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .modal-button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 0 5px;
+        }
+        
+        .modal-button:hover {
+            background-color: #45a049;
+        }
+        
+        .modal-button.secondary {
+            background-color: #ccc;
+        }
+        
+        .modal-button.secondary:hover {
+            background-color: #999;
+        }
+        
+        /* 勾选框样式 */
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+        
+        .checkbox-container input {
+            width: auto;
+            margin-right: 8px;
+        }
+        
+        /* 深色主题样式 */
+        body.dark-theme {
+            background-color: #1e1e1e;
+            color: #ffffff;
+        }
+        
+        .dark-theme .container {
+            background-color: #2d2d2d;
+            color: #ffffff;
+        }
+        
+        .dark-theme .custom-titlebar {
+            background-color: #1a1a1a;
+        }
+        
+        .dark-theme input, 
+        .dark-theme select {
+            background-color: #3a3a3a;
+            border-color: #555555;
+            color: #ffffff;
+        }
+        
+        .dark-theme .form-group label {
+            color: #ffffff;
+        }
+        
+        .dark-theme .titlebar-button:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .dark-theme .titlebar-button.close:hover {
+            background-color: #e81123;
+        }
+        
+        .dark-theme .exit-dialog-content {
+            background-color: #2d2d2d;
+            color: #ffffff;
+        }
+        
+        .dark-theme .exit-dialog-title {
+            color: #ffffff;
+        }
+        
+        .dark-theme .exit-dialog-message {
+            color: #cccccc;
+        }
+        
+        .dark-theme .modal-content {
+            background-color: #2d2d2d;
+            color: #ffffff;
+        }
+        
+        .dark-theme .modal-title {
+            color: #ffffff;
+        }
+        
+        .dark-theme .modal-body {
+            color: #cccccc;
+        }
+        
+        .dark-theme .modal-body pre {
+            background-color: #1e1e1e;
+            color: #ffffff;
+        }
+        
+        /* 密码输入框样式 */
+        #password {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        
+        .dark-theme #password {
+            background-color: #333;
+            color: #fff;
+            border-color: #555;
+        }
+    </style>
+</head>
+<body>
+    <!-- 自定义边栏 -->
+    <div class="custom-titlebar">
+        <div class="titlebar-title">Ruanm 屏保设置</div>
+        <div class="titlebar-controls">
+            <button class="titlebar-button minimize" id="minimizeButton" title="最小化">−</button>
+            <button class="titlebar-button maximize" id="maximizeButton" title="最大化">□</button>
+            <button class="titlebar-button close" id="closeButton" title="关闭">×</button>
+        </div>
+    </div>
+    
+    <!-- 确认退出对话框 -->
+    <div class="exit-dialog" id="exitDialog">
+        <div class="exit-dialog-content">
+            <h2 class="exit-dialog-title">确认退出</h2>
+            <p class="exit-dialog-message">您是要完全退出应用还是最小化到系统托盘？</p>
+            <div class="exit-dialog-buttons">
+                <button class="exit-dialog-button exit-btn" id="exitAppButton">完全退出</button>
+                <button class="exit-dialog-button tray-btn" id="minimizeToTrayButton">最小化到托盘</button>
+                <button class="exit-dialog-button cancel-btn" id="cancelExitButton">取消</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container">
+        <h1>Ruanm 屏保设置</h1>
+        <div id="mainContainer" style="display: block;">
+            <!-- 左侧设置表单 -->
+            <div id="settingsContainer" style="width: 100%;">
+                <form id="settingsForm">
+                    <div class="form-group">
+                        <label for="enableLockScreen">启用 Ruanm 屏保功能:</label>
+                        <div id="enableLockScreen" class="custom-toggle-button" data-active="false">
+                            <span class="button-text">关闭</span>
+                        </div>
+                        <div style="font-size: 12px; color: #666; margin-top: 5px;">必须启用此功能，其他设置才会生效</div>
+                    </div>
+            
+            <div class="form-group">
+                <label for="lockTime">自动启用屏保时间:</label>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <input type="number" id="lockTime" min="1" value="5" style="flex: 1;">
+                    <select id="lockTimeUnit" style="flex: 1;">
+                        <option value="second">秒</option>
+                        <option value="minute" selected>分钟</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="wallpaperChangeTime">壁纸切换时间:</label>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <input type="number" id="wallpaperChangeTime" min="1" value="10" style="flex: 1;">
+                    <select id="wallpaperChangeTimeUnit" style="flex: 1;">
+                        <option value="second">秒</option>
+                        <option value="minute" selected>分钟</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="wallpaperKeyword">壁纸类型:</label>
+                <select id="wallpaperKeyword">
+                    <option value="random">随机壁纸</option>
+                    <option value="4k">4K高清壁纸</option>
+                    <option value="landscape">风景壁纸</option>
+                    <option value="belle">妹子壁纸</option>
+                    <option value="game">游戏壁纸</option>
+                    <option value="photo">影视剧照</option>
+                    <option value="cool">炫酷壁纸</option>
+                    <option value="star">明星壁纸</option>
+                    <option value="car">汽车靓照</option>
+                    <option value="cartoon">动漫壁纸</option>
+                </select>
+            </div>
+            
+            <!-- 添加选择本地图片的功能 -->
+            <div class="form-group">
+                <label for="localWallpapers">本地壁纸:</label>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <input type="text" id="localWallpapers" placeholder="未选择本地图片" readonly style="flex: 1;">
+                    <button type="button" id="selectLocalWallpapers" style="width: auto; padding: 10px 15px;">选择图片</button>
+                    <button type="button" id="clearLocalWallpapers" style="width: auto; padding: 10px 15px;">清除选择</button>
+                </div>
+                <div style="font-size: 12px; color: #666; margin-top: 5px;">选择本地图片后，将只显示本地图片，不再获取网络壁纸。按住Ctrl键可选择多张不连续的图片，按住Shift键可选择连续的图片。</div>
+            </div>
+            
+            <h3>时间日期显示设置</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="timeFontSize">时间字体大小 (px):</label>
+                    <input type="number" id="timeFontSize" min="20" max="200" value="80">
+                </div>
+                <div class="form-group">
+                    <label for="dateFontSize">日期字体大小 (px):</label>
+                    <input type="number" id="dateFontSize" min="10" max="100" value="30">
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="timeFontFamily">时间字体:</label>
+                    <select id="timeFontFamily">
+                        <option value="Arial">Arial</option>
+                        <option value="Helvetica">Helvetica</option>
+                        <option value="Times New Roman">Times New Roman</option>
+                        <option value="Courier New">Courier New</option>
+                        <option value="Verdana">Verdana</option>
+                        <option value="Georgia">Georgia</option>
+                        <option value="Palatino">Palatino</option>
+                        <option value="Garamond">Garamond</option>
+                        <option value="Comic Sans MS">Comic Sans MS</option>
+                        <option value="Trebuchet MS">Trebuchet MS</option>
+                        <option value="Arial Black">Arial Black</option>
+                        <option value="Impact">Impact</option>
+                    </select>
+                    <div class="font-preview" id="timeFontPreview" style="font-size: 24px; margin-top: 10px; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">12:34</div>
+                </div>
+                <div class="form-group">
+                    <label for="dateFontFamily">日期字体:</label>
+                    <select id="dateFontFamily">
+                        <option value="Arial">Arial</option>
+                        <option value="Helvetica">Helvetica</option>
+                        <option value="Times New Roman">Times New Roman</option>
+                        <option value="Courier New">Courier New</option>
+                        <option value="Verdana">Verdana</option>
+                        <option value="Georgia">Georgia</option>
+                        <option value="Palatino">Palatino</option>
+                        <option value="Garamond">Garamond</option>
+                        <option value="Comic Sans MS">Comic Sans MS</option>
+                        <option value="Trebuchet MS">Trebuchet MS</option>
+                        <option value="Arial Black">Arial Black</option>
+                        <option value="Impact">Impact</option>
+                    </select>
+                    <div class="font-preview" id="dateFontPreview" style="font-size: 18px; margin-top: 10px; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">2025年1月1日 星期三</div>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="timePosition">时间位置:</label>
+                    <select id="timePosition">
+                        <option value="bottom-left">左下角</option>
+                        <option value="center">居中</option>
+                        <option value="top-left">左上角</option>
+                        <option value="top-right">右上角</option>
+                        <option value="bottom-right">右下角</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="datePosition">日期位置:</label>
+                    <select id="datePosition">
+                        <option value="bottom-left">左下角</option>
+                        <option value="center">居中</option>
+                        <option value="top-left">左上角</option>
+                        <option value="top-right">右上角</option>
+                        <option value="bottom-right">右下角</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="timeColor">主题颜色:</label>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <input type="color" id="timeColor" value="#FFFFFF" style="width: 60px; height: 40px;">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>显示产品广告（右下角）:</label>
+                <div id="showAdvertisement" class="custom-toggle-button" data-active="false">
+                    <span class="button-text">关闭</span>
+                </div>
+                <div style="font-size: 12px; color: #666; margin-top: 5px;">我们重视用户体验，默认不显示广告</div>
+            </div>
+            
+            <!-- 添加调试模式功能 -->
+            <div class="form-group">
+                <label>调试模式:</label>
+                <div id="debugMode" class="custom-toggle-button" data-active="false">
+                    <span class="button-text">关闭</span>
+                </div>
+                <div style="font-size: 12px; color: #666; margin-top: 5px;">开启调试模式后将记录详细日志，关闭则不记录</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="theme">界面主题:</label>
+                <select id="theme">
+                    <option value="light">浅色主题</option>
+                    <option value="dark">深色主题</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="weatherCity">天气城市:</label>
+                <input type="text" id="weatherCity" placeholder="请输入城市名称，如：Guangzhou">
+                <div style="font-size: 12px; color: #666; margin-top: 5px;">设置屏保界面显示的天气城市</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="weatherPosition">天气位置:</label>
+                <select id="weatherPosition">
+                    <option value="bottom-right">右下角</option>
+                    <option value="bottom-left">左下角</option>
+                    <option value="top-right">右上角</option>
+                    <option value="top-left">左上角</option>
+                </select>
+                <div style="font-size: 12px; color: #666; margin-top: 5px;">设置屏保界面天气信息显示位置</div>
+            </div>
+            
+            <!-- 添加密码设置功能 -->
+            <div class="form-group">
+                <label>启用密码保护:</label>
+                <div id="enablePasswordProtection" class="custom-toggle-button" data-active="false">
+                    <span class="button-text">关闭</span>
+                </div>
+                <div style="font-size: 12px; color: #666; margin-top: 5px;">启用密码保护后，退出屏保需要输入密码</div>
+            </div>
+            
+            <div class="form-group" id="passwordSettingGroup" style="display: none;">
+                <label for="password">设置密码 (4-8位字符):</label>
+                <input type="password" id="password" placeholder="请输入4-8位密码" maxlength="8">
+                <div style="font-size: 12px; color: #666; margin-top: 5px;">密码长度必须为4-8位，可包含字母、数字和特殊符号</div>
+            </div>
+            
+            <!-- 记住退出选择设置 -->
+            <div class="form-group">
+                <label>记住退出选择:</label>
+                <div id="rememberExitChoiceSetting" class="custom-toggle-button" data-active="false">
+                    <span class="button-text">关闭</span>
+                </div>
+                <div style="font-size: 12px; color: #666; margin-top: 5px;">启用后将记住您的退出选择，下次直接执行</div>
+            </div>
+            
+            <div class="button-container">
+                <button type="submit">保存设置</button>
+                <button type="button" id="showLogs">显示日志</button>
+            </div>
+        </form>
+        
+        <div class="control-buttons">
+            <button id="testLock" class="btn-warning">测试屏保</button>
+            <button id="openApiTest" class="btn-info">API测试</button>
+            <button id="addToPath" class="btn-path">添加到Path</button>
+            <button id="visualEditor" class="btn-info">可视化编辑</button>
+            <button id="autoStart" class="btn-Startup-info">开机自启动</button>
+            <button id="checkUpdate" class="btn-Update-info">检查更新</button>
+            <button id="about" class="btn-about-info">关于</button>
+            <button id="help" class="btn-help-info">帮助</button>
+        </div>
+    </div>
+</div>
+
+<div style="clear: both;"></div>
+
+    <!-- 自定义提示框 -->
+    <div class="custom-modal" id="taskScheduleModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Windows任务计划设置教程</div>
+            </div>
+            <div class="modal-body">
+                <p>要启用自动屏保功能，您需要在Windows任务计划程序中创建一个任务。</p>
+                
+                <h3>方法一：使用命令行创建任务</h3>
+                <p>1. 以管理员身份打开命令提示符(CMD)</p>
+                <p>2. 执行以下命令：</p>
+                <pre id="commandText">schtasks /create /tn "RuanmLockScreen" /tr "\"C:\path\to\your\app.exe\" \"--lock-screen\"" /sc minute /mo 5 /f</pre>
+                <p>注意：请将"C:\path\to\your\app.exe"替换为实际的应用程序路径</p>
+                
+                <h3>方法二：手动创建任务</h3>
+                <p>1. 打开"任务计划程序"</p>
+                <p>2. 点击"创建基本任务"</p>
+                <p>3. 输入任务名称（如：RuanmLockScreen）</p>
+                <p>4. 选择触发器为"每天"或其他合适的时间</p>
+                <p>5. 在操作步骤中选择"启动程序"</p>
+                <p>6. 程序或脚本选择您的应用程序路径</p>
+                <p>7. 添加参数：--lock-screen</p>
+                <p>8. 完成设置</p>
+                
+                <div class="checkbox-container">
+                    <input type="checkbox" id="dontShowAgain">
+                    <label for="dontShowAgain">不再显示此提示</label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-button" id="modalConfirm">确定</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 添加到Path教程模态框 -->
+    <div class="custom-modal" id="addToPathModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">添加到Path环境变量教程</div>
+            </div>
+            <div class="modal-body">
+                <p>要将Ruanm屏保命令行工具添加到系统Path环境变量中，请按照以下步骤操作：</p>
+                
+                <h3>方法一：使用命令行（推荐）</h3>
+                <p>1. 以管理员身份打开命令提示符(CMD)</p>
+                <p>2. 执行以下命令：</p>
+                <pre>setx PATH "%PATH%;你的程序目录\bin" /M</pre>
+                <p>注意：此命令会将你的程序目录下的bin文件夹添加到系统Path环境变量中。/M参数表示设置系统环境变量。</p>
+                <p><strong>提示：如果要临时设置环境变量（仅在当前命令行会话中有效），请使用set命令：set PATH=%PATH%;你的程序目录\bin</strong></p>
+                <p><strong>注意：为了确保环境变量更改完全生效，请重新启动计算机。</strong></p>
+                
+                <h3>方法二：手动设置</h3>
+                <p>1. 右键点击"此电脑"或"我的电脑"，选择"属性"</p>
+                <p>2. 点击"高级系统设置"</p>
+                <p>3. 在"系统属性"窗口中点击"环境变量"</p>
+                <p>4. 在"系统变量"中找到"Path"变量，选中后点击"编辑"</p>
+                <p>5. 点击"新建"，添加以下路径：</p>
+                <pre id="binPath">你的程序目录\bin</pre>
+                <p>6. 点击"确定"保存设置</p>
+                <p>7. 重新启动命令提示符或PowerShell以使更改生效</p>
+                <p><strong>注意：为了确保环境变量更改完全生效，请重新启动计算机。</strong></p>
+                
+                <h3>验证设置</h3>
+                <p>设置完成后，您可以打开新的命令提示符窗口，输入以下命令验证：</p>
+                <pre>RuanmScreensaver version</pre>
+                <p>如果显示版本信息，说明设置成功。</p>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-button" id="addToPathConfirm">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { ipcRenderer } = require('electron');
+        
+        // 启用屏保功能切换按钮
+        const enableLockScreenButton = document.getElementById('enableLockScreen');
+        
+        // 广告显示切换按钮
+        const toggleButton = document.getElementById('showAdvertisement');
+        
+        enableLockScreenButton.addEventListener('click', async () => {
+            const isActive = enableLockScreenButton.getAttribute('data-active') === 'true';
+            const newText = isActive ? '关闭' : '开启';
+            
+            enableLockScreenButton.setAttribute('data-active', isActive ? 'false' : 'true');
+            enableLockScreenButton.querySelector('.button-text').textContent = newText;
+            
+            if (!isActive) {
+                enableLockScreenButton.classList.add('active');
+            } else {
+                enableLockScreenButton.classList.remove('active');
+            }
+            
+            // 立即保存启用状态到配置文件
+            const currentSettings = await ipcRenderer.invoke('get-settings');
+            const newEnableLockScreen = enableLockScreenButton.getAttribute('data-active') === 'true';
+            currentSettings.enableLockScreen = newEnableLockScreen;
+            const result = await ipcRenderer.invoke('save-settings', currentSettings);
+            
+            if (result.success) {
+                console.log('启用屏保设置已保存:', newEnableLockScreen);
+                // 如果启用了屏保功能，通知主进程启动空闲检测
+                if (newEnableLockScreen) {
+                    await ipcRenderer.invoke('start-idle-detection');
+                }
+            } else {
+                console.error('保存启用屏保设置失败:', result.error);
+            }
+            
+            // 调试信息
+            console.log('启用屏保按钮状态已更新:', enableLockScreenButton.getAttribute('data-active'));
+        });
+        
+        toggleButton.addEventListener('click', async () => {
+            const isActive = toggleButton.getAttribute('data-active') === 'true';
+            const newText = isActive ? '开启' : '关闭';
+            
+            toggleButton.setAttribute('data-active', isActive ? 'false' : 'true');
+            toggleButton.querySelector('.button-text').textContent = newText;
+            
+            if (!isActive) {
+                toggleButton.classList.add('active');
+            } else {
+                toggleButton.classList.remove('active');
+            }
+            
+            // 立即保存广告设置到配置文件
+            const currentSettings = await ipcRenderer.invoke('get-settings');
+            const newShowAdvertisement = toggleButton.getAttribute('data-active') === 'true';
+            currentSettings.showAdvertisement = newShowAdvertisement;
+            const result = await ipcRenderer.invoke('save-settings', currentSettings);
+            
+            if (result.success) {
+                console.log('广告设置已保存:', newShowAdvertisement);
+            } else {
+                console.error('保存广告设置失败:', result.error);
+            }
+            
+            // 调试信息
+            console.log('广告按钮状态已更新:', toggleButton.getAttribute('data-active'));
+        });
+        
+        // 颜色预览更新
+        document.getElementById('timeColor').addEventListener('input', (e) => {
+            document.getElementById('colorPreview').style.backgroundColor = e.target.value;
+        });
+        
+        // 字体预览更新
+        function updateFontPreview() {
+            try {
+                const timeFontFamily = document.getElementById('timeFontFamily').value;
+                const dateFontFamily = document.getElementById('dateFontFamily').value;
+                
+                const timeFontPreview = document.getElementById('timeFontPreview');
+                const dateFontPreview = document.getElementById('dateFontPreview');
+                
+                console.log('字体预览更新:', { timeFontFamily, dateFontFamily, timeFontPreview, dateFontPreview });
+                
+                if (timeFontPreview) {
+                    timeFontPreview.style.fontFamily = timeFontFamily;
+                } else {
+                    console.warn('未找到时间字体预览元素');
+                }
+                
+                if (dateFontPreview) {
+                    dateFontPreview.style.fontFamily = dateFontFamily;
+                } else {
+                    console.warn('未找到日期字体预览元素');
+                }
+            } catch (error) {
+                console.error('更新字体预览失败:', error);
+            }
+        }
+        
+        // 加载系统字体
+        async function loadSystemFonts() {
+            try {
+                const result = await ipcRenderer.invoke('get-system-fonts');
+                if (result.success) {
+                    const fonts = result.fonts;
+                    const timeFontSelect = document.getElementById('timeFontFamily');
+                    const dateFontSelect = document.getElementById('dateFontFamily');
+                    
+                    // 保存当前选择
+                    const currentTimeFont = timeFontSelect.value;
+                    const currentDateFont = dateFontSelect.value;
+                    
+                    // 清空现有选项（保留默认选项）
+                    timeFontSelect.innerHTML = '';
+                    dateFontSelect.innerHTML = '';
+                    
+                    // 添加默认字体选项
+                    const defaultFonts = [
+                        'Arial', 'Helvetica', 'Times New Roman', 'Courier New', 
+                        'Verdana', 'Georgia', 'Palatino', 'Garamond', 
+                        'Comic Sans MS', 'Trebuchet MS', 'Arial Black', 'Impact'
+                    ];
+                    
+                    // 添加默认字体
+                    defaultFonts.forEach(font => {
+                        const timeOption = new Option(font, font);
+                        const dateOption = new Option(font, font);
+                        timeFontSelect.add(timeOption);
+                        dateFontSelect.add(dateOption);
+                    });
+                    
+                    // 添加系统字体（排除默认字体）
+                    fonts.forEach(font => {
+                        if (!defaultFonts.includes(font)) {
+                            const timeOption = new Option(font, font);
+                            const dateOption = new Option(font, font);
+                            timeFontSelect.add(timeOption);
+                            dateFontSelect.add(dateOption);
+                        }
+                    });
+                    
+                    // 恢复之前的选择
+                    timeFontSelect.value = currentTimeFont;
+                    dateFontSelect.value = currentDateFont;
+                    
+                    // 如果之前的选择不存在，设置为默认值
+                    if (!timeFontSelect.value) timeFontSelect.value = 'Arial';
+                    if (!dateFontSelect.value) dateFontSelect.value = 'Arial';
+                    
+                    // 更新字体预览
+                    updateFontPreview();
+                }
+            } catch (error) {
+                console.error('加载系统字体失败:', error);
+            }
+        }
+        
+        // 页面加载完成后获取当前设置
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const currentSettings = await ipcRenderer.invoke('get-settings');
+                console.log('获取到的当前设置:', currentSettings);
+                
+                // 设置表单字段的值
+                document.getElementById('enableLockScreen').setAttribute('data-active', currentSettings.enableLockScreen ? 'true' : 'false');
+                document.getElementById('enableLockScreen').querySelector('.button-text').textContent = currentSettings.enableLockScreen ? '开启' : '关闭';
+                if (currentSettings.enableLockScreen) {
+                    document.getElementById('enableLockScreen').classList.add('active');
+                }
+                
+                document.getElementById('lockTime').value = currentSettings.lockTime;
+                document.getElementById('lockTimeUnit').value = currentSettings.lockTimeUnit;
+                document.getElementById('wallpaperChangeTime').value = currentSettings.wallpaperChangeTime;
+                document.getElementById('wallpaperChangeTimeUnit').value = currentSettings.wallpaperChangeTimeUnit;
+                document.getElementById('wallpaperKeyword').value = currentSettings.wallpaperKeyword;
+                document.getElementById('timeFontSize').value = currentSettings.timeFontSize;
+                document.getElementById('dateFontSize').value = currentSettings.dateFontSize;
+                document.getElementById('timePosition').value = currentSettings.timePosition;
+                document.getElementById('datePosition').value = currentSettings.datePosition;
+                document.getElementById('timeColor').value = currentSettings.timeColor;
+                document.getElementById('timeFontFamily').value = currentSettings.timeFontFamily;
+                document.getElementById('dateFontFamily').value = currentSettings.dateFontFamily;
+                updateFontPreview('timeFontFamily', 'timeFontPreview');
+                updateFontPreview('dateFontFamily', 'dateFontPreview');
+                
+                // 广告显示设置
+                document.getElementById('showAdvertisement').setAttribute('data-active', currentSettings.showAdvertisement ? 'true' : 'false');
+                document.getElementById('showAdvertisement').querySelector('.button-text').textContent = currentSettings.showAdvertisement ? '开启' : '关闭';
+                if (currentSettings.showAdvertisement) {
+                    document.getElementById('showAdvertisement').classList.add('active');
+                }
+                
+                // 主题设置
+                document.getElementById('theme').value = currentSettings.theme;
+                // 应用主题样式
+                applyTheme(currentSettings.theme);
+                
+                // 天气城市设置
+                document.getElementById('weatherCity').value = currentSettings.weatherCity;
+                document.getElementById('weatherPosition').value = currentSettings.weatherPosition;
+                
+                // 天气信息显示设置
+                const showWeatherInfoButton = document.getElementById('showWeatherInfo');
+                if (currentSettings.showWeatherInfo) {
+                    showWeatherInfoButton.setAttribute('data-active', 'true');
+                    showWeatherInfoButton.classList.add('active');
+                    showWeatherInfoButton.querySelector('.button-text').textContent = '开启';
+                    // 显示天气样式选择组
+                    document.getElementById('weatherStyleGroup').style.display = 'block';
+                } else {
+                    showWeatherInfoButton.setAttribute('data-active', 'false');
+                    showWeatherInfoButton.querySelector('.button-text').textContent = '关闭';
+                    // 隐藏天气样式选择组
+                    document.getElementById('weatherStyleGroup').style.display = 'none';
+                }
+                
+                // 天气样式设置
+                document.getElementById('weatherStyle').value = currentSettings.weatherStyle || 'medium';
+                
+                // 密码保护设置
+                document.getElementById('enablePasswordProtection').setAttribute('data-active', currentSettings.enablePasswordProtection ? 'true' : 'false');
+                document.getElementById('enablePasswordProtection').querySelector('.button-text').textContent = currentSettings.enablePasswordProtection ? '开启' : '关闭';
+                if (currentSettings.enablePasswordProtection) {
+                    document.getElementById('enablePasswordProtection').classList.add('active');
+                    // 显示密码设置区域
+                    document.getElementById('passwordSettingGroup').style.display = 'block';
+                }
+                document.getElementById('password').value = currentSettings.password;
+                
+                // 本地壁纸设置
+                if (currentSettings.localWallpapers) {
+                    document.getElementById('localWallpapers').value = currentSettings.localWallpapers;
+                }
+                
+                // 调试模式设置
+                document.getElementById('debugMode').setAttribute('data-active', currentSettings.debugMode ? 'true' : 'false');
+                document.getElementById('debugMode').querySelector('.button-text').textContent = currentSettings.debugMode ? '开启' : '关闭';
+                if (currentSettings.debugMode) {
+                    document.getElementById('debugMode').classList.add('active');
+                }
+                
+                // 记住退出选择设置
+                document.getElementById('rememberExitChoiceSetting').setAttribute('data-active', currentSettings.rememberExitChoice ? 'true' : 'false');
+                document.getElementById('rememberExitChoiceSetting').querySelector('.button-text').textContent = currentSettings.rememberExitChoice ? '开启' : '关闭';
+                if (currentSettings.rememberExitChoice) {
+                    document.getElementById('rememberExitChoiceSetting').classList.add('active');
+                }
+                
+                // 检查当前开机自启动状态并更新按钮文本
+                try {
+                    const autoStartStatus = await ipcRenderer.invoke('get-auto-start-status');
+                    const autoStartButton = document.getElementById('autoStart');
+                    if (autoStartStatus.isOpenAtLogin) {
+                        autoStartButton.textContent = '取消开机自启动';
+                        autoStartButton.classList.add('active');
+                    } else {
+                        autoStartButton.textContent = '设置开机自启动';
+                        autoStartButton.classList.remove('active');
+                    }
+                } catch (error) {
+                    console.error('获取开机自启动状态失败:', error);
+                }
+                
+                // 检查是否需要自动执行上次的退出选择
+                // 但只在用户明确操作时执行，不在程序启动时自动执行
+                if (currentSettings.rememberExitChoice && currentSettings.lastExitChoice) {
+                    console.log('记住退出选择功能已启用，上次选择为:', currentSettings.lastExitChoice);
+                    // 注意：这里只是记录信息，不会自动执行任何操作
+                    // 实际的自动执行应该由用户明确触发
+                    
+                    // 为了调试，我们可以检查localStorage中的值
+                    const storedLastExitChoice = localStorage.getItem('lastExitChoice');
+                    console.log('localStorage中的lastExitChoice值:', storedLastExitChoice);
+                }
+                
+                // 初始化字体选择器
+                // initializeFontSelectors(); // 函数未定义，暂时注释掉
+            } catch (error) {
+                console.error('加载设置失败:', error);
+            }
+        });
+        
+        // 应用主题函数
+        function applyTheme(theme) {
+            if (theme === 'dark') {
+                document.body.classList.add('dark-theme');
+            } else {
+                document.body.classList.remove('dark-theme');
+            }
+        }
+        
+        // 主题选择变化事件
+        document.getElementById('theme').addEventListener('change', (e) => {
+            applyTheme(e.target.value);
+        });
+        
+        // 保存设置函数
+        async function saveSettings() {
+            // 收集表单数据
+            const settings = {
+                enableLockScreen: document.getElementById('enableLockScreen').getAttribute('data-active') === 'true',
+                lockTime: parseInt(document.getElementById('lockTime').value),
+                lockTimeUnit: document.getElementById('lockTimeUnit').value,
+                wallpaperChangeTime: parseInt(document.getElementById('wallpaperChangeTime').value),
+                wallpaperChangeTimeUnit: document.getElementById('wallpaperChangeTimeUnit').value,
+                wallpaperKeyword: document.getElementById('wallpaperKeyword').value,
+                timeFontSize: parseInt(document.getElementById('timeFontSize').value),
+                dateFontSize: parseInt(document.getElementById('dateFontSize').value),
+                timePosition: document.getElementById('timePosition').value,
+                datePosition: document.getElementById('datePosition').value,
+                timeColor: document.getElementById('timeColor').value,
+                timeFontFamily: document.getElementById('timeFontFamily').value,
+                dateFontFamily: document.getElementById('dateFontFamily').value,
+                showAdvertisement: document.getElementById('showAdvertisement').getAttribute('data-active') === 'true',
+                theme: document.getElementById('theme').value,
+                weatherCity: document.getElementById('weatherCity').value,
+                weatherPosition: document.getElementById('weatherPosition').value,
+                showWeatherInfo: document.getElementById('showWeatherInfo').getAttribute('data-active') === 'true',
+                weatherStyle: document.getElementById('weatherStyle').value,
+                enablePasswordProtection: document.getElementById('enablePasswordProtection').getAttribute('data-active') === 'true',
+                password: document.getElementById('password').value,
+                localWallpapers: document.getElementById('localWallpapers').value,
+                debugMode: document.getElementById('debugMode').getAttribute('data-active') === 'true',
+                rememberExitChoice: document.getElementById('rememberExitChoiceSetting').getAttribute('data-active') === 'true',
+                lastExitChoice: localStorage.getItem('lastExitChoice') || ''
+            };
+        }
+        
+        // 保存设置
+        document.getElementById('settingsForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // 收集表单数据
+            const settings = {
+                enableLockScreen: document.getElementById('enableLockScreen').getAttribute('data-active') === 'true',
+                lockTime: parseInt(document.getElementById('lockTime').value),
+                lockTimeUnit: document.getElementById('lockTimeUnit').value,
+                wallpaperChangeTime: parseInt(document.getElementById('wallpaperChangeTime').value),
+                wallpaperChangeTimeUnit: document.getElementById('wallpaperChangeTimeUnit').value,
+                wallpaperKeyword: document.getElementById('wallpaperKeyword').value,
+                timeFontSize: parseInt(document.getElementById('timeFontSize').value),
+                dateFontSize: parseInt(document.getElementById('dateFontSize').value),
+                timePosition: document.getElementById('timePosition').value,
+                datePosition: document.getElementById('datePosition').value,
+                timeColor: document.getElementById('timeColor').value,
+                timeFontFamily: document.getElementById('timeFontFamily').value,
+                dateFontFamily: document.getElementById('dateFontFamily').value,
+                showAdvertisement: document.getElementById('showAdvertisement').getAttribute('data-active') === 'true',
+                theme: document.getElementById('theme').value,
+                weatherCity: document.getElementById('weatherCity').value,
+                weatherPosition: document.getElementById('weatherPosition').value,
+                showWeatherInfo: document.getElementById('showWeatherInfo').getAttribute('data-active') === 'true',
+                weatherStyle: document.getElementById('weatherStyle').value,
+                enablePasswordProtection: document.getElementById('enablePasswordProtection').getAttribute('data-active') === 'true',
+                password: document.getElementById('password').value,
+                localWallpapers: document.getElementById('localWallpapers').value,
+                debugMode: document.getElementById('debugMode').getAttribute('data-active') === 'true',
+                rememberExitChoice: document.getElementById('rememberExitChoiceSetting').getAttribute('data-active') === 'true',
+                lastExitChoice: localStorage.getItem('lastExitChoice') || ''
+            };
+            
+            console.log('保存的设置:', settings);
+            
+            try {
+                const result = await ipcRenderer.invoke('save-settings', settings);
+                if (result.success) {
+                    alert('设置已保存！');
+                    
+                    // 发送主题变更消息到所有窗口
+                    ipcRenderer.send('theme-changed', settings.theme);
+                } else {
+                    alert('设置保存失败: ' + result.error);
+                }
+            } catch (error) {
+                console.error('保存设置失败:', error);
+                alert('设置保存失败: ' + error.message);
+            }
+        });
+        
+        // 测试屏保
+        document.getElementById('testLock').addEventListener('click', async () => {
+            await ipcRenderer.invoke('lock-screen');
+        });
+        
+        // 打开API测试
+        document.getElementById('openApiTest').addEventListener('click', async () => {
+            await ipcRenderer.invoke('open-api-test');
+        });
+
+        // 打开关于界面
+        document.getElementById('about').addEventListener('click', async () => {
+            await ipcRenderer.invoke('open-about');
+        });
+        
+        // 选择本地图片按钮事件
+        document.getElementById('selectLocalWallpapers').addEventListener('click', async () => {
+            try {
+                console.log('调用选择多张图片功能');
+                // 调用主进程选择多张图片
+                const result = await ipcRenderer.invoke('select-multiple-wallpapers');
+                console.log('选择图片结果:', result);
+                
+                // 添加更多调试信息
+                console.log('结果类型:', typeof result);
+                console.log('结果属性:', Object.keys(result));
+                
+                if (result.success) {
+                    console.log('文件路径数量:', result.filePaths.length);
+                    console.log('文件路径列表:', result.filePaths);
+                    
+                    // 保存选择的图片路径到输入框
+                    const localWallpapersInput = document.getElementById('localWallpapers');
+                    localWallpapersInput.value = result.filePaths.join(';');
+                    
+                    // 显示选择的图片数量
+                    alert(`已选择 ${result.filePaths.length} 张本地图片`);
+                } else {
+                    alert('未选择任何图片');
+                }
+            } catch (error) {
+                console.error('选择本地图片失败:', error);
+                alert('选择本地图片失败: ' + error.message);
+            }
+        });
+        
+        // 清除本地图片选择按钮事件
+        document.getElementById('clearLocalWallpapers').addEventListener('click', () => {
+            const localWallpapersInput = document.getElementById('localWallpapers');
+            localWallpapersInput.value = '';
+            alert('已清除本地图片选择');
+        });
+        
+        // 显示日志按钮
+        document.getElementById('showLogs').addEventListener('click', async () => {
+            await ipcRenderer.invoke('open-logs-folder');
+        });
+        
+        // 模态框确定按钮
+        document.getElementById('modalConfirm').addEventListener('click', () => {
+            // 检查是否勾选了"不再显示"
+            if (document.getElementById('dontShowAgain').checked) {
+                localStorage.setItem('dontShowTaskScheduleTip', 'true');
+            }
+            
+            document.getElementById('taskScheduleModal').style.display = 'none';
+            alert('设置已保存！');
+        });
+        
+        // 点击模态框外部关闭
+        document.getElementById('taskScheduleModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('taskScheduleModal')) {
+                document.getElementById('taskScheduleModal').style.display = 'none';
+                alert('设置已保存！');
+            }
+        });
+        // 自定义边栏按钮功能
+        document.getElementById('minimizeButton').addEventListener('click', async () => {
+            await ipcRenderer.invoke('minimize-window');
+        });
+        
+        document.getElementById('maximizeButton').addEventListener('click', async () => {
+            await ipcRenderer.invoke('maximize-window');
+        });
+        
+        document.getElementById('closeButton').addEventListener('click', async () => {
+            await ipcRenderer.invoke('close-window');
+        });
+        
+        // 监听显示退出对话框事件
+        ipcRenderer.on('show-exit-dialog', async () => {
+            // 获取当前设置
+            const currentSettings = await ipcRenderer.invoke('get-settings');
+            
+            // 检查是否启用了记住退出选择功能并且有上次的选择
+            if (currentSettings.rememberExitChoice && currentSettings.lastExitChoice) {
+                // 自动应用上次的选择
+                if (currentSettings.lastExitChoice === 'exit') {
+                    // 自动完全退出
+                    await ipcRenderer.invoke('exit-app');
+                } else if (currentSettings.lastExitChoice === 'minimize') {
+                    // 自动最小化到托盘
+                    await ipcRenderer.invoke('minimize-to-tray');
+                }
+                // 注意：这里不会显示退出对话框，而是直接应用选择
+                return;
+            }
+            
+            // 如果没有启用记住退出选择或没有上次选择，则显示退出对话框
+            document.getElementById('exitDialog').style.display = 'flex';
+        });
+        
+        // 完全退出应用
+        document.getElementById('exitAppButton').addEventListener('click', async () => {
+            // 检查是否勾选了"记住我的选择"
+            const rememberChoiceCheckbox = document.getElementById('rememberExitChoice');
+            const rememberChoiceSetting = document.getElementById('rememberExitChoiceSetting');
+            
+            if (rememberChoiceCheckbox && rememberChoiceCheckbox.checked) {
+                // 保存选择到localStorage
+                localStorage.setItem('lastExitChoice', 'exit');
+                
+                // 如果设置界面中的记住选择开关也开启了，则保存到配置文件
+                if (rememberChoiceSetting && rememberChoiceSetting.getAttribute('data-active') === 'true') {
+                    // 更新配置文件中的lastExitChoice字段
+                    const currentSettings = await ipcRenderer.invoke('get-settings');
+                    currentSettings.lastExitChoice = 'exit';
+                    await ipcRenderer.invoke('save-settings', currentSettings);
+                }
+            }
+            
+            document.getElementById('exitDialog').style.display = 'none';
+            await ipcRenderer.invoke('exit-app');
+        });
+        
+        // 最小化到托盘
+        document.getElementById('minimizeToTrayButton').addEventListener('click', async () => {
+            // 检查是否勾选了"记住我的选择"
+            const rememberChoiceCheckbox = document.getElementById('rememberExitChoice');
+            const rememberChoiceSetting = document.getElementById('rememberExitChoiceSetting');
+            
+            if (rememberChoiceCheckbox && rememberChoiceCheckbox.checked) {
+                // 保存选择到localStorage
+                localStorage.setItem('lastExitChoice', 'minimize');
+                
+                // 如果设置界面中的记住选择开关也开启了，则保存到配置文件
+                if (rememberChoiceSetting && rememberChoiceSetting.getAttribute('data-active') === 'true') {
+                    // 更新配置文件中的lastExitChoice字段
+                    const currentSettings = await ipcRenderer.invoke('get-settings');
+                    currentSettings.lastExitChoice = 'minimize';
+                    await ipcRenderer.invoke('save-settings', currentSettings);
+                }
+            }
+            
+            document.getElementById('exitDialog').style.display = 'none';
+            await ipcRenderer.invoke('minimize-to-tray');
+        });
+        
+        // 取消退出
+        document.getElementById('cancelExitButton').addEventListener('click', () => {
+            document.getElementById('exitDialog').style.display = 'none';
+        });
+        
+        // 添加密码保护功能处理逻辑
+        const enablePasswordProtectionButton = document.getElementById('enablePasswordProtection');
+        const passwordSettingGroup = document.getElementById('passwordSettingGroup');
+        const passwordInput = document.getElementById('password');
+        
+        // 添加调试模式功能处理逻辑
+        const debugModeButton = document.getElementById('debugMode');
+        
+        // 调试模式开关事件
+        debugModeButton.addEventListener('click', () => {
+            const isActive = debugModeButton.getAttribute('data-active') === 'true';
+            const newText = isActive ? '关闭' : '开启';
+            
+            debugModeButton.setAttribute('data-active', isActive ? 'false' : 'true');
+            debugModeButton.querySelector('.button-text').textContent = newText;
+            
+            if (!isActive) {
+                debugModeButton.classList.add('active');
+            } else {
+                debugModeButton.classList.remove('active');
+            }
+        });
+        
+        // 记住退出选择开关事件
+        const rememberExitChoiceSetting = document.getElementById('rememberExitChoiceSetting');
+        
+        rememberExitChoiceSetting.addEventListener('click', () => {
+            const isActive = rememberExitChoiceSetting.getAttribute('data-active') === 'true';
+            const newText = isActive ? '关闭' : '开启';
+            
+            rememberExitChoiceSetting.setAttribute('data-active', isActive ? 'false' : 'true');
+            rememberExitChoiceSetting.querySelector('.button-text').textContent = newText;
+            
+            if (!isActive) {
+                rememberExitChoiceSetting.classList.add('active');
+            } else {
+                rememberExitChoiceSetting.classList.remove('active');
+            }
+            
+            // 保存设置到配置文件
+            saveSettings();
+        });
+        
+        // 密码保护开关事件
+        enablePasswordProtectionButton.addEventListener('click', () => {
+            const isActive = enablePasswordProtectionButton.getAttribute('data-active') === 'true';
+            const newText = isActive ? '关闭' : '开启';
+            
+            enablePasswordProtectionButton.setAttribute('data-active', isActive ? 'false' : 'true');
+            enablePasswordProtectionButton.querySelector('.button-text').textContent = newText;
+            
+            if (!isActive) {
+                enablePasswordProtectionButton.classList.add('active');
+                // 显示密码设置区域
+                passwordSettingGroup.style.display = 'block';
+            } else {
+                enablePasswordProtectionButton.classList.remove('active');
+                // 隐藏密码设置区域
+                passwordSettingGroup.style.display = 'none';
+            }
+        });
+        
+        // 密码输入验证
+        passwordInput.addEventListener('input', (e) => {
+            const value = e.target.value;
+            
+            // 限制长度为4-8位
+            if (value.length > 8) {
+                e.target.value = value.slice(0, 8);
+            }
+        });
+        
+        // 添加到Path按钮
+        document.getElementById('addToPath').addEventListener('click', () => {
+            document.getElementById('addToPathModal').style.display = 'flex';
+        });
+        
+        // 添加到Path模态框确定按钮
+        document.getElementById('addToPathConfirm').addEventListener('click', () => {
+            document.getElementById('addToPathModal').style.display = 'none';
+        });
+        
+        // 点击添加到Path模态框外部关闭
+        document.getElementById('addToPathModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('addToPathModal')) {
+                document.getElementById('addToPathModal').style.display = 'none';
+            }
+        });
+        
+        // 可视化编辑按钮
+        document.getElementById('visualEditor').addEventListener('click', async () => {
+            // 以小窗模式打开屏保
+            const visualEditorWindow = await ipcRenderer.invoke('open-visual-editor');
+            
+            // 保存窗口引用以便后续刷新操作
+            window.visualEditorWindow = visualEditorWindow;
+        });
+        
+        // 开机自启动按钮
+        document.getElementById('autoStart').addEventListener('click', async () => {
+            try {
+                // 调用主进程处理开机自启动设置
+                const result = await ipcRenderer.invoke('toggle-auto-start');
+                if (result.success) {
+                    // 更新按钮文本和样式
+                    const autoStartButton = document.getElementById('autoStart');
+                    const autoStartStatus = await ipcRenderer.invoke('get-auto-start-status');
+                    if (autoStartStatus.isOpenAtLogin) {
+                        autoStartButton.textContent = '取消开机自启动';
+                        autoStartButton.classList.add('active');
+                    } else {
+                        autoStartButton.textContent = '设置开机自启动';
+                        autoStartButton.classList.remove('active');
+                    }
+                    
+                    alert(result.message);
+                } else {
+                    alert('操作失败: ' + result.error);
+                }
+            } catch (error) {
+                console.error('设置开机自启动失败:', error);
+                alert('设置开机自启动失败: ' + error.message);
+            }
+        });
+        
+        // 检查更新按钮
+        document.getElementById('checkUpdate').addEventListener('click', async () => {
+            try {
+                // 调用主进程处理检查更新
+                const result = await ipcRenderer.invoke('check-for-updates');
+                if (result.success) {
+                    if (result.hasUpdate) {
+                        // 有新版本可用，直接启动GUI更新程序
+                        await ipcRenderer.invoke('launch-update-gui');
+                    } else {
+                        // 没有新版本
+                        alert('当前已是最新版本！');
+                    }
+                } else {
+                    alert('检查更新失败: ' + result.error);
+                }
+            } catch (error) {
+                console.error('检查更新失败:', error);
+                alert('检查更新失败: ' + error.message);
+            }
+        });
+        
+        // 帮助按钮
+        document.getElementById('help').addEventListener('click', async () => {
+            await ipcRenderer.invoke('open-help');
+        });
+        
+        // 天气信息显示切换按钮
+        const showWeatherInfoButton = document.getElementById('showWeatherInfo');
+        
+        showWeatherInfoButton.addEventListener('click', async () => {
+            const isActive = showWeatherInfoButton.getAttribute('data-active') === 'true';
+            const newText = isActive ? '关闭' : '开启';
+            
+            showWeatherInfoButton.setAttribute('data-active', isActive ? 'false' : 'true');
+            showWeatherInfoButton.querySelector('.button-text').textContent = newText;
+            
+            if (!isActive) {
+                showWeatherInfoButton.classList.add('active');
+            } else {
+                showWeatherInfoButton.classList.remove('active');
+            }
+            
+            // 控制天气样式选择的显示/隐藏
+            const weatherStyleGroup = document.getElementById('weatherStyleGroup');
+            if (!isActive) {
+                weatherStyleGroup.style.display = 'block';
+            } else {
+                weatherStyleGroup.style.display = 'none';
+            }
+            
+            // 立即保存天气信息显示设置到配置文件
+            const currentSettings = await ipcRenderer.invoke('get-settings');
+            const newShowWeatherInfo = showWeatherInfoButton.getAttribute('data-active') === 'true';
+            currentSettings.showWeatherInfo = newShowWeatherInfo;
+            const result = await ipcRenderer.invoke('save-settings', currentSettings);
+            
+            if (result.success) {
+                console.log('天气信息显示设置已保存:', newShowWeatherInfo);
+            } else {
+                console.error('保存天气信息显示设置失败:', result.error);
+            }
+            
+            // 调试信息
+            console.log('天气信息显示按钮状态已更新:', showWeatherInfoButton.getAttribute('data-active'));
+        });
+        
+        // 天气样式选择
+        const weatherStyleSelect = document.getElementById('weatherStyle');
+        
+        weatherStyleSelect.addEventListener('change', async () => {
+            const selectedStyle = weatherStyleSelect.value;
+            
+            // 立即保存天气样式设置到配置文件
+            const currentSettings = await ipcRenderer.invoke('get-settings');
+            currentSettings.weatherStyle = selectedStyle;
+            const result = await ipcRenderer.invoke('save-settings', currentSettings);
+            
+            if (result.success) {
+                console.log('天气样式设置已保存:', selectedStyle);
+            } else {
+                console.error('保存天气样式设置失败:', result.error);
+            }
+            
+            // 调试信息
+            console.log('天气样式已更新:', selectedStyle);
+        });
+    </script>
+</body>
+</html>

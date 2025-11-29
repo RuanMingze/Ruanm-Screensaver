@@ -1,0 +1,20 @@
+{
+  "enableLockScreen": false,
+  "lockTime": 1,
+  "lockTimeUnit": "minute",
+  "wallpaperChangeTime": 10,
+  "wallpaperChangeTimeUnit": "minute",
+  "wallpaperKeyword": "random",
+  "timeFontSize": 80,
+  "dateFontSize": 30,
+  "timePosition": "bottom-left",
+  "datePosition": "bottom-left",
+  "timeColor": "#ffffff",
+  "timeFontFamily": "Arial",
+  "dateFontFamily": "Arial",
+  "showAdvertisement": false,
+  "enableLogging": false,
+  "theme": "light",
+  "weatherCity": "Guangzhou",
+  "weatherPosition": "bottom-right"
+}

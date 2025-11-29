@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Ruanm 屏保帮助</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+            padding-top: 60px;
+            overflow: hidden; /* 隐藏默认滚动条 */
+        }
+        
+        .custom-titlebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 40px;
+            background-color: #333;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 10px;
+            z-index: 1000;
+            -webkit-app-region: drag;
+        }
+        
+        .titlebar-title {
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        .titlebar-controls {
+            display: flex;
+            gap: 5px;
+            -webkit-app-region: no-drag;
+        }
+        
+        .titlebar-button {
+            width: 30px;
+            height: 25px;
+            background-color: transparent;
+            border: none;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+        
+        .titlebar-button:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .titlebar-button.close:hover {
+            background-color: #e81123;
+        }
+        
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-height: calc(100vh - 120px);
+            overflow-y: auto;
+        }
+        
+        /* 自定义滚动条样式 */
+        .container::-webkit-scrollbar {
+            width: 12px;
+        }
+        
+        .container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        .container::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+        
+        .container::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        
+        h1, h2, h3 {
+            color: #333;
+        }
+        
+        h1 {
+            text-align: center;
+        }
+        
+        h2 {
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 5px;
+            margin-top: 30px;
+        }
+        
+        h3 {
+            margin-top: 20px;
+        }
+        
+        p {
+            line-height: 1.6;
+            color: #555;
+        }
+        
+        pre {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+        }
+        
+        ul, ol {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        
+        li {
+            margin-bottom: 5px;
+        }
+        
+        .note {
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196F3;
+            padding: 10px;
+            margin: 15px 0;
+        }
+        
+        .warning {
+            background-color: #fff3e0;
+            border-left: 4px solid #ff9800;
+            padding: 10px;
+            margin: 15px 0;
+        }
+        
+        .tip {
+            background-color: #e8f5e9;
+            border-left: 4px solid #4CAF50;
+            padding: 10px;
+            margin: 15px 0;
+        }
+        
+        body.dark-theme {
+            background-color: #1e1e1e;
+            color: #ffffff;
+        }
+        
+        .dark-theme .container {
+            background-color: #2d2d2d;
+            color: #ffffff;
+        }
+        
+        .dark-theme h1, 
+        .dark-theme h2, 
+        .dark-theme h3 {
+            color: #ffffff;
+        }
+        
+        .dark-theme p, 
+        .dark-theme li {
+            color: #cccccc;
+        }
+        
+        .dark-theme pre {
+            background-color: #3d3d3d;
+            color: #ffffff;
+        }
+        
+        .dark-theme .note {
+            background-color: #1e3a5f;
+            border-left: 4px solid #2196F3;
+        }
+        
+        .dark-theme .warning {
+            background-color: #5c3d1e;
+            border-left: 4px solid #ff9800;
+        }
+        
+        .dark-theme .tip {
+            background-color: #2d4a2d;
+            border-left: 4px solid #4CAF50;
+        }
+        
+        .dark-theme .custom-titlebar {
+            background-color: #2d2d2d;
+            color: #ffffff;
+        }
+        
+        .dark-theme .titlebar-button:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .dark-theme .titlebar-button.close:hover {
+            background-color: #e81123;
+        }
+    </style>
+</head>
+<body>
+    <!-- 自定义边栏 -->
+    <div class="custom-titlebar">
+        <div class="titlebar-title">Ruanm 屏保帮助</div>
+        <div class="titlebar-controls">
+            <button class="titlebar-button close" id="closeButton" title="关闭">×</button>
+        </div>
+    </div>
+    
+    <div class="container">
+        <h1>Ruanm 屏保帮助文档</h1>
+        
+        <h2>目录</h2>
+        <ul>
+            <li><a href="#introduction">功能介绍</a></li>
+            <li><a href="#installation">安装与启动</a></li>
+            <li><a href="#settings">设置说明</a></li>
+            <li><a href="#screensaver">屏保使用</a></li>
+            <li><a href="#task-schedule">任务计划设置</a></li>
+            <li><a href="#troubleshooting">常见问题</a></li>
+            <li><a href="#faq">常见问题解答</a></li>
+        </ul>
+        
+        <h2 id="introduction">功能介绍</h2>
+        <p>Ruanm 屏保是一款功能强大的屏幕保护程序，具有以下主要功能：</p>
+        <ul>
+            <li>自动屏保：根据设定的时间自动启动屏保</li>
+            <li>动态壁纸：支持多种类型的壁纸自动切换</li>
+            <li>时间日期显示：在屏保界面上显示时间和日期</li>
+            <li>自定义设置：可自定义屏保时间、壁纸类型、字体大小等</li>
+            <li>系统托盘：最小化到系统托盘后台运行</li>
+            <li>日志记录：记录应用运行日志便于问题排查</li>
+            <li>本地壁纸：支持选择本地图片作为壁纸</li>
+            <li>天气信息：在屏保界面显示天气信息</li>
+            <li>密码保护：可设置密码保护屏保退出</li>
+        </ul>
+        
+        <h2 id="installation">安装与启动</h2>
+        <h3>安装步骤</h3>
+        <ol>
+            <li>下载 Ruanm 屏保安装包</li>
+            <li>双击安装包开始安装</li>
+            <li>按照安装向导完成安装过程</li>
+            <li>安装完成后，应用会自动启动</li>
+        </ol>
+        
+        <h3>启动方式</h3>
+        <ul>
+            <li>桌面快捷方式：双击桌面上的 Ruanm 屏保图标</li>
+            <li>开始菜单：在开始菜单中找到 Ruanm 屏保并点击启动</li>
+            <li>系统托盘：如果应用已在后台运行，点击系统托盘图标即可打开主界面</li>
+        </ul>
+        
+        <h2 id="settings">设置说明</h2>
+        <h3>基本设置</h3>
+        <ul>
+            <li><strong>启用屏保功能</strong>：必须开启此功能，其他设置才会生效</li>
+            <li><strong>自动启用屏保时间</strong>：设置系统空闲多长时间后启动屏保</li>
+            <li><strong>壁纸切换时间</strong>：设置屏保界面壁纸自动切换的时间间隔</li>
+            <li><strong>壁纸类型</strong>：选择屏保壁纸的类型，支持多种分类</li>
+        </ul>
+        
+        <h3>时间日期显示设置</h3>
+        <ul>
+            <li><strong>时间/日期字体大小</strong>：调整时间和日期显示的字体大小</li>
+            <li><strong>时间/日期字体</strong>：选择时间和日期显示的字体</li>
+            <li><strong>时间/日期位置</strong>：设置时间和日期在屏保界面的显示位置</li>
+            <li><strong>主题颜色</strong>：设置时间和日期显示的颜色</li>
+        </ul>
+        
+        <h3>其他设置</h3>
+        <ul>
+            <li><strong>显示产品广告</strong>：默认不显示广告，可根据需要开启</li>
+            <li><strong>生成日志文件</strong>：记录应用运行日志，有助于问题排查</li>
+        </ul>
+        
+        <h2 id="screensaver">屏保使用</h2>
+        <h3>手动启动屏保</h3>
+        <p>在主界面点击"测试屏保"按钮可以手动启动屏保进行测试。</p>
+        
+        <h3>自动启动屏保</h3>
+        <p>需要设置 Windows 任务计划程序才能实现自动启动屏保，具体设置方法请参考<a href="#task-schedule">任务计划设置</a>部分。</p>
+        
+        <h3>退出屏保</h3>
+        <p>在屏保界面按下任意键或移动鼠标即可退出屏保。</p>
+        
+        <h2 id="task-schedule">任务计划设置</h2>
+        <p>要实现自动屏保功能，需要在 Windows 任务计划程序中创建一个任务。</p>
+        
+        <h3>方法一：使用命令行创建任务</h3>
+        <p>1. 以管理员身份打开命令提示符(CMD)</p>
+        <p>2. 执行以下命令：</p>
+        <pre>schtasks /create /tn "RuanmScreensaver" /tr "\"C:\Program Files\Ruanm Screensaver\RuanmScreensaver.exe\" \"--screensaver\"" /sc minute /mo 1 /f</pre>
+        <p class="note">注意：请将"C:\Program Files\Ruanm Screensaver\RuanmScreensaver.exe"替换为实际的应用程序安装路径</p>
+        
+        <h3>方法二：手动创建任务</h3>
+        <ol>
+            <li>打开"任务计划程序"（可在开始菜单搜索）</li>
+            <li>点击"创建基本任务"</li>
+            <li>输入任务名称（如：RuanmScreensaver）</li>
+            <li>选择触发器为"每天"或其他合适的时间</li>
+            <li>在操作步骤中选择"启动程序"</li>
+            <li>程序或脚本选择您的应用程序路径</li>
+            <li>添加参数：--screensaver</li>
+            <li>完成设置</li>
+        </ol>
+        
+        <h2 id="troubleshooting">常见问题</h2>
+        <h3>屏保没有自动启动</h3>
+        <p>请检查以下设置：</p>
+        <ul>
+            <li>确认已启用"启用 Ruanm 屏保功能"</li>
+            <li>确认已正确设置 Windows 任务计划程序</li>
+            <li>确认系统空闲时间已达到设置的屏保启动时间</li>
+        </ul>
+        
+        <h3>壁纸无法显示</h3>
+        <p>请检查以下设置：</p>
+        <ul>
+            <li>确认网络连接正常</li>
+            <li>确认壁纸切换时间设置合理</li>
+            <li>查看日志文件了解具体错误信息</li>
+        </ul>
+        
+        <h3>设置无法保存</h3>
+        <p>请检查以下设置：</p>
+        <ul>
+            <li>确认应用程序具有写入设置文件的权限</li>
+            <li>确认磁盘空间充足</li>
+            <li>重启应用程序后再次尝试</li>
+        </ul>
+        
+        <h2 id="faq">常见问题解答</h2>
+        <h3>Q: 屏保启动后无法退出怎么办？</h3>
+        <p>A: 正常情况下点击右上角叉号即可退出屏保，如果没有按钮，可能是被隐藏了，双击就应该会出现，如果还是无法退出，请按 Ctrl+Alt+Del 打开任务管理器，结束 Ruanm 屏保进程。</p>
+        
+        <h3>Q: 可以自定义壁纸吗？</h3>
+        <p>A: 支持自定义壁纸，您可以选择本地图片作为壁纸，也可以选择不同类型的在线壁纸。</p>
+        
+        <h3>Q: 应用占用内存大吗？</h3>
+        <p>A: Ruanm 屏保经过优化，后台运行时占用内存很小，不会对系统性能造成明显影响。</p>
+        
+        <h3>Q: 支持多显示器吗？</h3>
+        <p>A: 支持多显示器，屏保会在所有显示器上同时显示。</p>
+    </div>
+    
+    <script>
+        const { ipcRenderer } = require('electron');
+        
+        // 关闭窗口
+        document.getElementById('closeButton').addEventListener('click', () => {
+            try {
+                window.close();
+            } catch (error) {
+                console.error('关闭窗口时出错:', error);
+                // 如果无法关闭窗口，尝试其他方法
+                try {
+                    const { remote } = require('electron');
+                    const currentWindow = remote.getCurrentWindow();
+                    currentWindow.close();
+                } catch (remoteError) {
+                    console.error('通过remote关闭窗口时出错:', remoteError);
+                    // 最后尝试隐藏窗口
+                    try {
+                        const { remote } = require('electron');
+                        const currentWindow = remote.getCurrentWindow();
+                        currentWindow.hide();
+                    } catch (hideError) {
+                        console.error('隐藏窗口时出错:', hideError);
+                    }
+                }
+            }
+        });
+        
+        // 应用主题函数
+        function applyTheme(theme) {
+            if (theme === 'dark') {
+                document.body.classList.add('dark-theme');
+            } else {
+                document.body.classList.remove('dark-theme');
+            }
+        }
+        
+        // 页面加载完成后应用主题
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                // 首先尝试从主进程获取当前主题设置
+                const settings = await ipcRenderer.invoke('get-settings');
+                if (settings && settings.theme) {
+                    applyTheme(settings.theme);
+                    // 同时保存到本地存储
+                    localStorage.setItem('theme', settings.theme);
+                } else {
+                    // 如果无法从主进程获取，尝试从本地存储获取
+                    const savedTheme = localStorage.getItem('theme');
+                    if (savedTheme) {
+                        applyTheme(savedTheme);
+                    }
+                }
+            } catch (error) {
+                console.log('无法获取主题设置，使用默认主题');
+                // 如果出现错误，尝试从本地存储获取
+                const savedTheme = localStorage.getItem('theme');
+                if (savedTheme) {
+                    applyTheme(savedTheme);
+                }
+            }
+        });
+        
+        // 监听来自主进程的主题应用消息
+        ipcRenderer.on('apply-theme', (event, theme) => {
+            applyTheme(theme);
+            // 同时保存到本地存储
+            localStorage.setItem('theme', theme);
+        });
+    </script>
+</body>
+</html>
